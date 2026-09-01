@@ -449,20 +449,43 @@ input[type="text"]:focus, textarea:focus, select:focus{
   box-shadow:0 0 0 3px rgba(47,111,237,0.15);
 }
 
-.section-divider{
-  font-size:0.78rem;
-  font-weight:700;
-  text-transform:uppercase;
-  letter-spacing:0.04em;
-  color:var(--accent-text);
+.field-section-head{
+  display:flex;
+  align-items:center;
+  gap:10px;
   border-top:1px solid var(--line);
-  padding-top:14px;
-  margin:6px 0 14px;
+  padding-top:20px;
+  margin:8px 0 16px;
 }
-.section-divider .opt{
-  text-transform:none;
-  letter-spacing:normal;
-  font-weight:400;
+.field-section-head .divider-letter{
+  font-family:var(--font-serif);
+  font-weight:700;
+  font-size:1rem;
+  color:var(--accent-text);
+  flex:none;
+}
+.field-section-head .divider-title{
+  font-size:0.82rem;
+  font-weight:800;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  color:var(--ink);
+  white-space:nowrap;
+}
+.field-section-head .opt-pill{
+  flex:none;
+  background:var(--ground);
+  border:1px solid var(--line);
+  color:var(--ink-soft);
+  font-size:0.72rem;
+  font-weight:600;
+  padding:3px 10px;
+  border-radius:999px;
+}
+.field-section-head .divider-rule{
+  flex:1;
+  height:1px;
+  background:var(--line);
 }
 
 .suggestions{
