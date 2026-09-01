@@ -443,6 +443,12 @@ input[type="text"], textarea, select{
   resize:vertical;
 }
 select{cursor:pointer;}
+.field-hint{
+  margin:6px 0 0;
+  font-size:0.75rem;
+  color:var(--ink-soft);
+}
+
 input[type="text"]:focus, textarea:focus, select:focus{
   outline:none;
   border-color:var(--accent-text);
@@ -682,10 +688,17 @@ input[type="text"]:focus, textarea:focus, select:focus{
   margin-top:8px;
   font-size:0.78rem;
   color:var(--ink-soft);
+  flex-wrap:wrap;
+  gap:8px;
 }
 .meter{font-weight:600;}
 .meter.ok{color:var(--ok);}
 .meter.warn{color:var(--warn);}
+.meter-feedback{
+  font-weight:500;
+  color:var(--accent-text);
+  font-size:0.78rem;
+}
 
 .photo-reminder{
   margin:10px 0 0;

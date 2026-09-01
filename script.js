@@ -5,7 +5,7 @@
     "who", "where", "issue", "involvement", "changed", "why", "quote",
     "howmany", "timeframe", "results", "donor", "partner",
     "donorHandle", "partnerHandle", "orgHandle", "programme",
-    "phase", "link"
+    "phase", "link", "tone"
   ];
   const fields = {};
   ids.forEach((id) => { fields[id] = document.getElementById(id); });
@@ -19,6 +19,11 @@
     meta: document.getElementById("meta-meter"),
     linkedin: document.getElementById("linkedin-meter"),
     website: document.getElementById("website-meter"),
+  };
+  const feedbacks = {
+    meta: document.getElementById("meta-feedback"),
+    linkedin: document.getElementById("linkedin-feedback"),
+    website: document.getElementById("website-feedback"),
   };
   const photoReminder = document.getElementById("photo-reminder");
   const scanCard = document.getElementById("scan-card");
@@ -101,6 +106,58 @@
     (p) => `Our local partner, ${p}, carried out much of this work directly.`,
   ];
 
+  // ---------- tone-specific phrases ----------
+
+  const TONE_VARIANTS = {
+    balanced: {
+      impactWord: "brought about change",
+      impactAlternatives: ["resulted in", "made possible", "enabled"],
+      ongoingWord: "continues to work",
+      priorityWord: "essential",
+      strengthWord: "supported",
+    },
+    impact: {
+      impactWord: "delivered measurable results",
+      impactAlternatives: ["achieved", "drove", "generated"],
+      ongoingWord: "continues to achieve results",
+      priorityWord: "critical",
+      strengthWord: "enabled",
+    },
+    resilience: {
+      impactWord: "strengthened local capacity",
+      impactAlternatives: ["built community strength", "empowered communities", "fostered resilience"],
+      ongoingWord: "continues to strengthen",
+      priorityWord: "vital",
+      strengthWord: "strengthened",
+    },
+    urgent: {
+      impactWord: "delivered emergency response",
+      impactAlternatives: ["responded to urgent need", "provided immediate relief", "answered the call"],
+      ongoingWord: "continues to provide critical support",
+      priorityWord: "life-saving",
+      strengthWord: "sustained",
+    },
+    reflective: {
+      impactWord: "changed what's possible",
+      impactAlternatives: ["opened new possibilities", "shifted what was possible", "transformed"],
+      ongoingWord: "continues to evolve the work",
+      priorityWord: "profound",
+      strengthWord: "supported",
+    },
+    solutions: {
+      impactWord: "implemented working solutions",
+      impactAlternatives: ["solved", "created sustainable change", "established systems"],
+      ongoingWord: "continues to scale solutions",
+      priorityWord: "sustainable",
+      strengthWord: "built systems with",
+    },
+  };
+
+  function getTonePhrase(tone, key) {
+    const variant = TONE_VARIANTS[tone] || TONE_VARIANTS.balanced;
+    return variant[key] || TONE_VARIANTS.balanced[key];
+  }
+
   // ---------- caption builders ----------
 
   function val(id) {
@@ -109,7 +166,7 @@
     return clean(el.value);
   }
 
-  function buildMeta(v, variant) {
+  function buildMeta(v, variant, tone = "balanced") {
     const sentences = [];
     const whereLeadin = WHERE_LEADINS[variant % WHERE_LEADINS.length];
     const donorLeadin = DONOR_LEADINS[variant % DONOR_LEADINS.length];
@@ -136,7 +193,7 @@
     return joinSentences(sentences);
   }
 
-  function buildLinkedin(v, variant) {
+  function buildLinkedin(v, variant, tone = "balanced") {
     const sentences = [];
     const timeframeLeadin = pick(TIMEFRAME_LEADINS, variant);
     const donorLeadin = DONOR_LEADINS[variant % DONOR_LEADINS.length];
@@ -178,15 +235,15 @@
     return joinSentences(sentences);
   }
 
-  function buildWebsite(v, variant) {
+  function buildWebsite(v, variant, tone = “balanced”) {
     const sentences = [];
     const whereLeadin = WHERE_LEADINS[variant % WHERE_LEADINS.length];
     const timeframeLeadin = pick(TIMEFRAME_LEADINS, variant);
 
     if (v.quote) {
       const q = upper1(stripQuotes(v.quote));
-      const name = firstName(v.who) || "they say";
-      sentences.push(`“${q}” — ${name}.`);
+      const name = firstName(v.who) || “they say”;
+      sentences.push(`”${q}” — ${name}.`);
     }
 
     if (v.who && v.where) sentences.push(`${upper1(v.who)}, ${whereLeadin(v.where)}.`);
@@ -202,10 +259,10 @@
     if (v.changed) sentences.push(sentenceFrom(v.changed));
 
     if (v.timeframe || v.howmany) {
-      let s = "";
+      let s = “”;
       if (v.timeframe) s += `${timeframeLeadin} ${stripLeadingSince(v.timeframe)}, `;
-      s += v.howmany ? `the program has reached ${v.howmany}` : (s ? "the program has grown" : "The program has grown");
-      s = clean(s) + ".";
+      s += v.howmany ? `the program has reached ${v.howmany}` : (s ? “the program has grown” : “The program has grown”);
+      s = clean(s) + “.”;
       sentences.push(s);
     }
     if (v.results) sentences.push(sentenceFrom(v.results));
@@ -471,21 +528,44 @@
 
   let hasGenerated = false;
 
+  function setSentenceFeedback(el, count, min, max) {
+    if (!el) return;
+    el.textContent = "";
+    if (count === 0) return;
+
+    if (count < min) {
+      const needed = min - count;
+      el.textContent = `+ ${needed} sentence${needed === 1 ? "" : "s"} to reach target`;
+    } else if (max && count > max) {
+      const excess = count - max;
+      el.textContent = `− ${excess} sentence${excess === 1 ? "" : "s"} to tighten`;
+    }
+  }
+
   function generateCaptions() {
     const v = {};
     ids.forEach((id) => { v[id] = val(id); });
 
-    const metaBase = buildMeta(v, variantIndex.meta);
-    const linkedinBase = buildLinkedin(v, variantIndex.linkedin);
-    const websiteBase = buildWebsite(v, variantIndex.website);
+    const tone = v.tone || "balanced";
+    const metaBase = buildMeta(v, variantIndex.meta, tone);
+    const linkedinBase = buildLinkedin(v, variantIndex.linkedin, tone);
+    const websiteBase = buildWebsite(v, variantIndex.website, tone);
 
     outputs.meta.textContent = appendTags(metaBase, v, true);
     outputs.linkedin.textContent = appendTags(linkedinBase, v, true);
     outputs.website.textContent = appendTags(websiteBase, v, false);
 
-    setMeter(meters.meta, countSentences(metaBase), 2, 4);
-    setMeter(meters.linkedin, countSentences(linkedinBase), 3, null);
-    setMeter(meters.website, countSentences(websiteBase), 5, null);
+    const metaCount = countSentences(metaBase);
+    const linkedinCount = countSentences(linkedinBase);
+    const websiteCount = countSentences(websiteBase);
+
+    setMeter(meters.meta, metaCount, 2, 4);
+    setMeter(meters.linkedin, linkedinCount, 3, null);
+    setMeter(meters.website, websiteCount, 5, null);
+
+    setSentenceFeedback(feedbacks.meta, metaCount, 2, 3);
+    setSentenceFeedback(feedbacks.linkedin, linkedinCount, 3, 5);
+    setSentenceFeedback(feedbacks.website, websiteCount, 5, 8);
 
     photoReminder.hidden = !websiteBase;
 
@@ -1010,6 +1090,10 @@
     const el = fields[id];
     el.addEventListener("input", scheduleDraftSave);
     if (el.tagName === "SELECT") el.addEventListener("change", scheduleDraftSave);
+  });
+
+  fields.tone.addEventListener("change", () => {
+    if (hasGenerated) generateCaptions();
   });
 
   loadDraft();
