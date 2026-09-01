@@ -539,6 +539,8 @@
     } else if (max && count > max) {
       const excess = count - max;
       el.textContent = `− ${excess} sentence${excess === 1 ? "" : "s"} to tighten`;
+    } else {
+      el.textContent = `✓ ${count} sentence${count === 1 ? "" : "s"} — good length`;
     }
   }
 
