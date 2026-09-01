@@ -422,7 +422,9 @@
 
   // ---------- main render ----------
 
-  function render() {
+  let hasGenerated = false;
+
+  function generateCaptions() {
     const v = {};
     ids.forEach((id) => { v[id] = val(id); });
 
@@ -518,13 +520,6 @@
 
   // ---------- events ----------
 
-  ids.forEach((id) => {
-    fields[id].addEventListener("input", render);
-    if (fields[id].tagName === "SELECT") {
-      fields[id].addEventListener("change", render);
-    }
-  });
-
   document.getElementById("toggle-guide").addEventListener("click", () => {
     const guide = document.getElementById("guide");
     guide.hidden = !guide.hidden;
@@ -535,7 +530,8 @@
     variantIndex.meta = 0;
     variantIndex.linkedin = 0;
     variantIndex.website = 0;
-    render();
+    hasGenerated = false;
+    generateCaptions();
   });
 
   async function copyText(text) {
@@ -573,13 +569,228 @@
 
   document.querySelectorAll(".regen-btn[data-channel]").forEach((btn) => {
     btn.addEventListener("click", () => {
+      if (!hasGenerated) return;
       const channel = btn.getAttribute("data-channel");
       variantIndex[channel] = (variantIndex[channel] + 1) % 3;
-      render();
+      generateCaptions();
     });
   });
 
-  render();
+  // ---------- account / auth / usage gating ----------
+
+  const API_BASE = window.CAPTION_API_BASE || "http://localhost:4000";
+  const TOKEN_KEY = "captiongen_token";
+
+  const authPanelWrap = document.getElementById("auth-panel-wrap");
+  const appMain = document.getElementById("app-main");
+  const accountBar = document.getElementById("account-bar");
+  const accountStatus = document.getElementById("account-status");
+  const logoutBtn = document.getElementById("logout-btn");
+  const upgradeLinkBtn = document.getElementById("upgrade-link-btn");
+  const authForm = document.getElementById("auth-form");
+  const authEmail = document.getElementById("auth-email");
+  const authPassword = document.getElementById("auth-password");
+  const authError = document.getElementById("auth-error");
+  const authHeading = document.getElementById("auth-heading");
+  const authSubmit = document.getElementById("auth-submit");
+  const authToggleMode = document.getElementById("auth-toggle-mode");
+  const generateBtn = document.getElementById("generate-btn");
+  const usageNote = document.getElementById("usage-note");
+  const quotaBanner = document.getElementById("quota-banner");
+  const quotaUpgradeBtn = document.getElementById("quota-upgrade-btn");
+
+  let authMode = "signup";
+
+  function getToken() { return localStorage.getItem(TOKEN_KEY); }
+  function setToken(t) { localStorage.setItem(TOKEN_KEY, t); }
+  function clearToken() { localStorage.removeItem(TOKEN_KEY); }
+
+  async function apiFetch(path, options) {
+    options = options || {};
+    const token = getToken();
+    const headers = Object.assign({ "Content-Type": "application/json" }, options.headers || {});
+    if (token) headers.Authorization = "Bearer " + token;
+    let res;
+    try {
+      res = await fetch(API_BASE + path, Object.assign({}, options, { headers }));
+    } catch (e) {
+      const err = new Error("network_error");
+      err.status = 0;
+      throw err;
+    }
+    let data = null;
+    try { data = await res.json(); } catch (e) { data = null; }
+    if (!res.ok) {
+      const err = new Error((data && data.error) || "request_failed");
+      err.status = res.status;
+      err.data = data;
+      throw err;
+    }
+    return data;
+  }
+
+  function showAuthPanel() {
+    authPanelWrap.hidden = false;
+    appMain.hidden = true;
+    accountBar.hidden = true;
+  }
+
+  function showApp() {
+    authPanelWrap.hidden = true;
+    appMain.hidden = false;
+    accountBar.hidden = false;
+  }
+
+  function renderUsage(status) {
+    if (status.isSubscribed) {
+      accountStatus.textContent = `${authEmailCache || "Signed in"} · unlimited (subscribed)`;
+      upgradeLinkBtn.hidden = true;
+      usageNote.textContent = "Unlimited generations — thanks for subscribing.";
+      quotaBanner.hidden = true;
+    } else {
+      accountStatus.textContent = `${authEmailCache || "Signed in"} · ${status.freeRemaining} of ${status.freeLimit} free generations left`;
+      upgradeLinkBtn.hidden = false;
+      usageNote.textContent = status.freeRemaining > 0
+        ? `${status.freeRemaining} of ${status.freeLimit} free generations left`
+        : "No free generations left.";
+      quotaBanner.hidden = status.canGenerate;
+    }
+  }
+
+  let authEmailCache = "";
+
+  async function refreshSession() {
+    const token = getToken();
+    if (!token) {
+      showAuthPanel();
+      return;
+    }
+    try {
+      const [{ user }, status] = await Promise.all([
+        apiFetch("/api/auth/me"),
+        apiFetch("/api/usage/status"),
+      ]);
+      authEmailCache = user.email;
+      showApp();
+      renderUsage(status);
+    } catch (e) {
+      clearToken();
+      showAuthPanel();
+    }
+  }
+
+  function setAuthMode(mode) {
+    authMode = mode;
+    authError.hidden = true;
+    if (mode === "signup") {
+      authHeading.textContent = "Sign up to get started";
+      authSubmit.textContent = "Sign up";
+      authToggleMode.textContent = "Already have an account? Log in";
+      authPassword.setAttribute("autocomplete", "new-password");
+    } else {
+      authHeading.textContent = "Log in";
+      authSubmit.textContent = "Log in";
+      authToggleMode.textContent = "New here? Sign up";
+      authPassword.setAttribute("autocomplete", "current-password");
+    }
+  }
+
+  authToggleMode.addEventListener("click", () => {
+    setAuthMode(authMode === "signup" ? "login" : "signup");
+  });
+
+  const AUTH_ERROR_COPY = {
+    invalid_email: "Enter a valid email address.",
+    password_too_short: "Password must be at least 8 characters.",
+    email_taken: "An account with that email already exists — try logging in instead.",
+    invalid_credentials: "Incorrect email or password.",
+    network_error: "Couldn't reach the server. Is the API running?",
+  };
+
+  authForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    authError.hidden = true;
+    authSubmit.disabled = true;
+    try {
+      const path = authMode === "signup" ? "/api/auth/signup" : "/api/auth/login";
+      const data = await apiFetch(path, {
+        method: "POST",
+        body: JSON.stringify({ email: authEmail.value, password: authPassword.value }),
+      });
+      setToken(data.token);
+      authPassword.value = "";
+      await refreshSession();
+    } catch (err) {
+      authError.textContent = AUTH_ERROR_COPY[err.data && err.data.error] || AUTH_ERROR_COPY[err.message] || "Something went wrong — try again.";
+      authError.hidden = false;
+    } finally {
+      authSubmit.disabled = false;
+    }
+  });
+
+  logoutBtn.addEventListener("click", () => {
+    clearToken();
+    hasGenerated = false;
+    ids.forEach((id) => { fields[id].value = fields[id].tagName === "SELECT" ? "na" : ""; });
+    variantIndex.meta = 0;
+    variantIndex.linkedin = 0;
+    variantIndex.website = 0;
+    generateCaptions();
+    quotaBanner.hidden = true;
+    showAuthPanel();
+  });
+
+  generateBtn.addEventListener("click", async () => {
+    generateBtn.disabled = true;
+    const original = generateBtn.textContent;
+    generateBtn.textContent = "Generating…";
+    try {
+      const status = await apiFetch("/api/usage/generate", { method: "POST" });
+      renderUsage(status);
+      hasGenerated = true;
+      generateCaptions();
+    } catch (err) {
+      if (err.status === 402) {
+        renderUsage(err.data);
+      } else if (err.status === 401) {
+        clearToken();
+        showAuthPanel();
+      } else {
+        usageNote.textContent = "Couldn't reach the server — try again.";
+      }
+    } finally {
+      generateBtn.textContent = original;
+      generateBtn.disabled = false;
+    }
+  });
+
+  async function attemptUpgrade(btn) {
+    const original = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = "Working…";
+    try {
+      const data = await apiFetch("/api/billing/dev-simulate-upgrade", { method: "POST" });
+      if (data.simulated) {
+        alert("Dev mode: upgrade simulated — no real payment was made. Real billing isn't wired up yet.");
+      }
+      await refreshSession();
+    } catch (err) {
+      if (err.status === 404) {
+        alert("Online upgrades aren't available yet — payment isn't set up. Check back soon.");
+      } else {
+        alert("Couldn't process that — try again.");
+      }
+    } finally {
+      btn.textContent = original;
+      btn.disabled = false;
+    }
+  }
+
+  upgradeLinkBtn.addEventListener("click", () => attemptUpgrade(upgradeLinkBtn));
+  quotaUpgradeBtn.addEventListener("click", () => attemptUpgrade(quotaUpgradeBtn));
+
+  setAuthMode("signup");
+  refreshSession();
 
   // ---------- image caption (needs the Claude "sample" runtime capability) ----------
 

@@ -69,6 +69,79 @@ body{
   font-size:0.98rem;
 }
 
+.account-bar{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  margin-top:12px;
+  font-size:0.85rem;
+}
+.account-bar[hidden]{display:none;}
+.account-status{
+  color:var(--ink-soft);
+}
+
+.auth-panel-wrap{
+  max-width:460px;
+  margin:48px auto;
+  padding:0 24px;
+}
+.auth-panel-wrap[hidden]{display:none;}
+.auth-panel h2{
+  margin:0 0 6px;
+  font-size:1.25rem;
+}
+.auth-sub{
+  margin:0 0 20px;
+  color:var(--ink-soft);
+  font-size:0.9rem;
+}
+.field-hint{
+  margin:4px 0 0;
+  font-size:0.76rem;
+  color:var(--ink-soft);
+}
+.auth-error{
+  background:#fdf4e7;
+  border:1px solid #f0dbb4;
+  color:var(--warn);
+  border-radius:6px;
+  padding:8px 10px;
+  font-size:0.85rem;
+  margin:6px 0 0;
+}
+.auth-actions{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  margin-top:14px;
+}
+
+.generate-row{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  flex-wrap:wrap;
+  margin-bottom:14px;
+}
+.usage-note{
+  font-size:0.84rem;
+  color:var(--ink-soft);
+}
+.quota-banner{
+  background:#fdf4e7;
+  border:1px solid #f0dbb4;
+  border-radius:8px;
+  padding:10px 14px;
+  margin-bottom:16px;
+  font-size:0.88rem;
+  color:var(--warn);
+}
+.quota-banner[hidden]{display:none;}
+.quota-banner p{margin:0;}
+
+main.layout[hidden]{display:none;}
+
 .layout{
   max-width:1180px;
   margin:0 auto;
@@ -307,7 +380,7 @@ input[type="text"]:focus, textarea:focus, select:focus{
   color:var(--ink);
 }
 .output-text:empty::before{
-  content:"Fill in the required boxes on the left to see this caption.";
+  content:"Fill in the required boxes on the left, then click Generate my captions.";
   color:var(--ink-soft);
   font-style:italic;
 }
