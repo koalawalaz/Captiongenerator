@@ -77,7 +77,7 @@
         <div class="workspace-head-text">
           <p class="step-label">01 &middot; Gather the story</p>
           <h1 class="workspace-title">Start with what <span class="accent-serif">actually happened.</span></h1>
-          <p class="workspace-sub">A quiet place to turn field notes into words that keep people at the centre. No hype. No content-machine voice.</p>
+          <p class="workspace-sub">A tool for humanitarian contexts: NGOs, INGOs, donors, partners, and initiatives. Turn field notes into channel-ready captions with your own voice—no hype, no content-machine copy. Keep people at the centre.</p>
         </div>
         <div class="shape-badge">
           <svg class="shape-ring" viewBox="0 0 64 64" aria-hidden="true">
@@ -239,6 +239,26 @@
               <label for="link">Website link <span class="opt">optional, used to close the LinkedIn caption</span></label>
               <input type="text" id="link" placeholder="e.g. yourorg.org">
             </div>
+
+            <div class="field-section-head">
+              <span class="divider-letter">E</span>
+              <span class="divider-title">Tone &amp; voice</span>
+              <span class="opt-pill">optional</span>
+              <span class="divider-rule"></span>
+            </div>
+
+            <div class="field">
+              <label for="tone">Caption tone</label>
+              <select id="tone">
+                <option value="balanced" selected>Balanced (default)</option>
+                <option value="impact">Impact &amp; outcomes focused</option>
+                <option value="resilience">Local resilience &amp; strength</option>
+                <option value="urgent">Urgent need with hope</option>
+                <option value="reflective">Reflective &amp; human-centered</option>
+                <option value="solutions">Solution-focused</option>
+              </select>
+              <p class="field-hint">Each tone keeps dignity at its centre while shifting the emphasis.</p>
+            </div>
           </form>
         </section>
 
@@ -292,6 +312,7 @@
             <div class="meter-row">
               <span class="meter" id="meta-meter"></span>
               <span class="meter-target">target: 2&ndash;3 sentences</span>
+              <span class="meter-feedback" id="meta-feedback"></span>
             </div>
           </div>
 
@@ -310,6 +331,7 @@
             <div class="meter-row">
               <span class="meter" id="linkedin-meter"></span>
               <span class="meter-target">target: 3&ndash;5+ sentences, with numbers</span>
+              <span class="meter-feedback" id="linkedin-feedback"></span>
             </div>
           </div>
 
@@ -328,6 +350,7 @@
             <div class="meter-row">
               <span class="meter" id="website-meter"></span>
               <span class="meter-target">target: 5&ndash;8+ sentences, full story</span>
+              <span class="meter-feedback" id="website-feedback"></span>
             </div>
             <p class="photo-reminder" id="photo-reminder" hidden>Reminder: include photos with their own captions alongside this story.</p>
           </div>
