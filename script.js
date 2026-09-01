@@ -94,22 +94,11 @@
     (w) => `based in ${w}`,
     (w) => `in ${w}`,
   ];
-  const DONOR_LEADINS = [
-    (d) => `With the support of ${d}`,
-    (d) => `Thanks to ${d}`,
-    (d) => `With ${d}'s support`,
-  ];
-  const NOW_WORDS = ["now", "today", "since then"];
   const TIMEFRAME_LEADINS = ["Since", "As of", "Starting"];
   const LINK_LEADINS = [
     "Read the full story on our website:",
     "Full story on our website:",
     "See the full story at",
-  ];
-  const DONOR_CREDIT_TAILS = [
-    (d) => `${DONOR_LEADINS[0](d)}, our team was able to respond.`,
-    (d) => `${DONOR_LEADINS[1](d)}, we were able to act quickly.`,
-    (d) => `${DONOR_LEADINS[2](d)}, this response was possible.`,
   ];
   const PARTNER_PHRASES = [
     (p) => `${upper1(p)} worked alongside us on the ground throughout.`,
@@ -117,56 +106,68 @@
     (p) => `Our local partner, ${p}, carried out much of this work directly.`,
   ];
 
-  // ---------- tone-specific phrases ----------
+  // ---------- tone-specific phrasing ----------
+  //
+  // Tone never invents facts — it only changes the connector words and
+  // donor-crediting language wrapped around whatever the user actually
+  // typed, the same way "Regenerate" cycles phrasing without changing
+  // content. Each tone still keeps dignity as the baseline.
 
-  const TONE_VARIANTS = {
-    balanced: {
-      impactWord: "brought about change",
-      impactAlternatives: ["resulted in", "made possible", "enabled"],
-      ongoingWord: "continues to work",
-      priorityWord: "essential",
-      strengthWord: "supported",
-    },
-    impact: {
-      impactWord: "delivered measurable results",
-      impactAlternatives: ["achieved", "drove", "generated"],
-      ongoingWord: "continues to achieve results",
-      priorityWord: "critical",
-      strengthWord: "enabled",
-    },
-    resilience: {
-      impactWord: "strengthened local capacity",
-      impactAlternatives: ["built community strength", "empowered communities", "fostered resilience"],
-      ongoingWord: "continues to strengthen",
-      priorityWord: "vital",
-      strengthWord: "strengthened",
-    },
-    urgent: {
-      impactWord: "delivered emergency response",
-      impactAlternatives: ["responded to urgent need", "provided immediate relief", "answered the call"],
-      ongoingWord: "continues to provide critical support",
-      priorityWord: "life-saving",
-      strengthWord: "sustained",
-    },
-    reflective: {
-      impactWord: "changed what's possible",
-      impactAlternatives: ["opened new possibilities", "shifted what was possible", "transformed"],
-      ongoingWord: "continues to evolve the work",
-      priorityWord: "profound",
-      strengthWord: "supported",
-    },
-    solutions: {
-      impactWord: "implemented working solutions",
-      impactAlternatives: ["solved", "created sustainable change", "established systems"],
-      ongoingWord: "continues to scale solutions",
-      priorityWord: "sustainable",
-      strengthWord: "built systems with",
-    },
+  const DONOR_LEADINS_BY_TONE = {
+    balanced: [
+      (d) => `With the support of ${d}`,
+      (d) => `Thanks to ${d}`,
+      (d) => `With ${d}'s support`,
+    ],
+    impact: [
+      (d) => `With ${d}'s support driving measurable results`,
+      (d) => `Backed by ${d}'s investment`,
+      (d) => `With funding from ${d} behind this outcome`,
+    ],
+    resilience: [
+      (d) => `Alongside ${d}'s support, and through the community's own strength`,
+      (d) => `With ${d} standing behind local leadership`,
+      (d) => `With ${d}'s support for community-led work`,
+    ],
+    urgent: [
+      (d) => `With emergency support from ${d}`,
+      (d) => `Thanks to ${d}'s rapid-response funding`,
+      (d) => `With ${d} responding without delay`,
+    ],
+    reflective: [
+      (d) => `With ${d} walking alongside this work`,
+      (d) => `Thanks to ${d}'s continued support`,
+      (d) => `With ${d}'s quiet, steady support`,
+    ],
+    solutions: [
+      (d) => `With ${d} investing in a lasting solution`,
+      (d) => `Thanks to ${d}'s support for a sustainable approach`,
+      (d) => `With ${d} backing a solution built to last`,
+    ],
   };
+  function getDonorLeadins(tone) {
+    return DONOR_LEADINS_BY_TONE[tone] || DONOR_LEADINS_BY_TONE.balanced;
+  }
 
-  function getTonePhrase(tone, key) {
-    const variant = TONE_VARIANTS[tone] || TONE_VARIANTS.balanced;
-    return variant[key] || TONE_VARIANTS.balanced[key];
+  const NOW_WORDS_BY_TONE = {
+    balanced: ["now", "today", "since then"],
+    impact: ["as a direct result", "with measurable results", "and the impact is clear"],
+    resilience: ["through their own resilience", "with the community's own strength", "by their own resolve"],
+    urgent: ["without delay", "urgently", "right now"],
+    reflective: ["in time", "slowly, but surely", "in their own words"],
+    solutions: ["through a lasting solution", "with a sustainable approach", "and the solution holds"],
+  };
+  function getNowWords(tone) {
+    return NOW_WORDS_BY_TONE[tone] || NOW_WORDS_BY_TONE.balanced;
+  }
+
+  function buildDonorCreditTails(tone) {
+    const leadins = getDonorLeadins(tone);
+    return [
+      (d) => `${leadins[0](d)}, our team was able to respond.`,
+      (d) => `${leadins[1](d)}, we were able to act quickly.`,
+      (d) => `${leadins[2](d)}, this response was possible.`,
+    ];
   }
 
   // ---------- caption builders ----------
@@ -177,11 +178,16 @@
     return clean(el.value);
   }
 
+  function escapeRegExp(s) {
+    return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  }
+
   function buildMeta(v, variant, tone = "balanced") {
     const sentences = [];
     const whereLeadin = WHERE_LEADINS[variant % WHERE_LEADINS.length];
-    const donorLeadin = DONOR_LEADINS[variant % DONOR_LEADINS.length];
-    const nowWord = NOW_WORDS[variant % NOW_WORDS.length];
+    const donorLeadin = pick(getDonorLeadins(tone), variant);
+    let nowWord = pick(getNowWords(tone), variant);
+    if (v.changed && new RegExp(`\\b${escapeRegExp(nowWord)}\\b`, "i").test(v.changed)) nowWord = "";
 
     if (v.who && v.where) sentences.push(`${upper1(v.who)}, ${whereLeadin(v.where)}.`);
     else if (v.who) sentences.push(`${upper1(v.who)}.`);
@@ -194,8 +200,12 @@
       if (v.donor) s += `${donorLeadin(v.donor)}, `;
       if (v.involvement) s += v.donor ? lower1(v.involvement) : upper1(v.involvement);
       if (v.changed) {
-        s += s ? `, and ${nowWord} ` : (v.donor ? `${donorLeadin(v.donor)}, ${nowWord} ` : `${upper1(nowWord)} `);
-        s += lower1(v.changed);
+        const bridge = nowWord ? `${nowWord} ` : "";
+        if (s) {
+          s += `, and ${bridge}${lower1(v.changed)}`;
+        } else {
+          s += bridge ? `${upper1(bridge)}${lower1(v.changed)}` : upper1(v.changed);
+        }
       }
       s = clean(s) + ".";
       sentences.push(s);
@@ -207,7 +217,7 @@
   function buildLinkedin(v, variant, tone = "balanced") {
     const sentences = [];
     const timeframeLeadin = pick(TIMEFRAME_LEADINS, variant);
-    const donorLeadin = DONOR_LEADINS[variant % DONOR_LEADINS.length];
+    const donorLeadin = pick(getDonorLeadins(tone), variant);
     const linkLeadin = pick(LINK_LEADINS, variant);
     const whereLeadin = WHERE_LEADINS[variant % WHERE_LEADINS.length];
 
@@ -264,7 +274,7 @@
     if (v.issue) sentences.push(sentenceFrom(v.issue));
     if (v.why) sentences.push(sentenceFrom(v.why));
 
-    if (v.donor) sentences.push(pick(DONOR_CREDIT_TAILS, variant)(v.donor));
+    if (v.donor) sentences.push(pick(buildDonorCreditTails(tone), variant)(v.donor));
     if (v.partner) sentences.push(pick(PARTNER_PHRASES, variant)(v.partner));
     if (v.involvement) sentences.push(sentenceFrom(v.involvement));
     if (v.changed) sentences.push(sentenceFrom(v.changed));
@@ -272,7 +282,8 @@
     if (v.timeframe || v.howmany) {
       let s = "";
       if (v.timeframe) s += `${timeframeLeadin} ${stripLeadingSince(v.timeframe)}, `;
-      s += v.howmany ? `the program has reached ${v.howmany}` : (s ? "the program has grown" : "The program has grown");
+      const tail = v.howmany ? `the program has reached ${v.howmany}` : "the program has grown";
+      s += s ? tail : upper1(tail);
       s = clean(s) + ".";
       sentences.push(s);
     }
