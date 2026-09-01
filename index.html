@@ -9,12 +9,48 @@
 <body>
 <header class="topbar">
   <div class="topbar-inner">
-    <h1>Caption Generator</h1>
+    <div class="brand">
+      <svg class="brand-icon" viewBox="0 0 64 52" aria-hidden="true">
+        <path d="M8 4h40a7 7 0 0 1 7 7v16a7 7 0 0 1-7 7H26l-11 11 2-11H8a7 7 0 0 1-7-7V11a7 7 0 0 1 7-7z" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linejoin="round"/>
+      </svg>
+      <p class="brand-word">
+        <span class="brand-bold">Caption</span>
+        <span class="brand-light">Generator</span>
+      </p>
+    </div>
     <p class="tagline">Fill the story once. Get channel-ready captions that sound like a person wrote them.</p>
+    <div class="account-bar" id="account-bar" hidden>
+      <span class="account-status" id="account-status"></span>
+      <button class="link-btn" id="upgrade-link-btn" type="button" hidden>Upgrade &mdash; $5/month</button>
+      <button class="link-btn" id="logout-btn" type="button">Log out</button>
+    </div>
   </div>
 </header>
 
-<main class="layout">
+<div class="auth-panel-wrap" id="auth-panel-wrap">
+  <section class="panel auth-panel" id="auth-panel">
+    <h2 id="auth-heading">Sign up to get started</h2>
+    <p class="auth-sub">3 free caption generations, then $5/month for unlimited.</p>
+    <form id="auth-form" autocomplete="on">
+      <div class="field">
+        <label for="auth-email">Email</label>
+        <input type="email" id="auth-email" required autocomplete="email">
+      </div>
+      <div class="field">
+        <label for="auth-password">Password</label>
+        <input type="password" id="auth-password" required autocomplete="current-password" minlength="8">
+        <p class="field-hint">At least 8 characters.</p>
+      </div>
+      <p class="auth-error" id="auth-error" hidden></p>
+      <div class="auth-actions">
+        <button type="submit" class="upload-btn" id="auth-submit">Sign up</button>
+        <button type="button" class="link-btn" id="auth-toggle-mode">Already have an account? Log in</button>
+      </div>
+    </form>
+  </section>
+</div>
+
+<main class="layout" id="app-main" hidden>
 
   <section class="panel form-panel">
     <div class="panel-head">
@@ -89,13 +125,77 @@
       <div class="field-row">
         <div class="field">
           <label for="donor">11 &middot; Donor</label>
-          <input type="text" id="donor" placeholder="e.g. ECHO">
+          <input type="text" id="donor" placeholder="e.g. European Union Civil Protection and Humanitarian Aid (ECHO)">
         </div>
         <div class="field">
           <label for="partner">12 &middot; Partners</label>
           <input type="text" id="partner" placeholder="Local partner name">
         </div>
       </div>
+
+      <div class="section-divider">Mentions &amp; tags <span class="opt">all optional</span></div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="donorHandle">Donor handle</label>
+          <input type="text" id="donorHandle" placeholder="e.g. @EU_ECHO &mdash; only if you know the real handle">
+        </div>
+        <div class="field">
+          <label for="partnerHandle">Partner handle</label>
+          <input type="text" id="partnerHandle" placeholder="e.g. @LocalPartnerOrg">
+        </div>
+      </div>
+      <div class="field">
+        <label for="orgHandle">Your organization's handle</label>
+        <input type="text" id="orgHandle" placeholder="e.g. @drc_ngo">
+      </div>
+      <div class="field">
+        <label for="programme">Programme</label>
+        <select id="programme">
+          <option value="na" selected>N/A</option>
+          <optgroup label="Protection">
+            <option value="pim">Protection Information Management (PIM)</option>
+            <option value="cp">Child Protection (CP)</option>
+            <option value="cbp">Community-Based Protection (CBP)</option>
+            <option value="gbv">Prevention of and response to Gender-Based Violence (GBV)</option>
+            <option value="legal">Legal Aid</option>
+            <option value="mhpss">Mental Health and Psycho-Social Support (MHPSS)</option>
+            <option value="protcoord">Support to Protection Coordination (Co-Coordination &ndash; Co-Leadership)</option>
+          </optgroup>
+          <optgroup label="Economic Recovery">
+            <option value="food">Food Security</option>
+            <option value="finclusion">Financial Inclusion</option>
+            <option value="livelihoods">Decent Livelihoods</option>
+          </optgroup>
+          <optgroup label="Humanitarian Disarmament and Peacebuilding">
+            <option value="eore">Explosive Ordnance Risk Education</option>
+            <option value="landrelease_nts">Land Release &ndash; NTS/TS/Marking</option>
+            <option value="landrelease_clearance">Land Release &ndash; Manual Clearance/Battle Area Clearance/Explosive Ordnance Disposal</option>
+            <option value="victimassist">Victim Assistance</option>
+            <option value="peacebuilding">Peacebuilding</option>
+          </optgroup>
+          <optgroup label="Shelter, Settlements, WASH and Infrastructure">
+            <option value="nfi">Household Items (NFIs)</option>
+            <option value="wash">Water, Sanitation and Hygiene</option>
+            <option value="shelter">Shelter and Settlements</option>
+            <option value="infrastructure">Infrastructure</option>
+          </optgroup>
+          <optgroup label="Innovation">
+            <option value="anticipatory">Anticipatory Action</option>
+            <option value="youthemployment">Youth Employment</option>
+            <option value="digital">Digital Innovation</option>
+            <option value="privatesector">Private Sector Engagement</option>
+            <option value="globalevents">Global Events</option>
+            <option value="climatefinance">Innovation Financing for Climate Resilience in Displacement</option>
+            <option value="standby">Standby Roster</option>
+          </optgroup>
+          <optgroup label="Civil Society Engagement">
+            <option value="diaspora">Diaspora Programme</option>
+            <option value="csostrategy">Global Civil Society Engagement Strategy</option>
+          </optgroup>
+        </select>
+      </div>
+
       <div class="field">
         <label for="phase">Project phase / context <span class="opt">optional, strengthens LinkedIn</span></label>
         <input type="text" id="phase" placeholder="e.g. second phase, shifting from casework to capacity sharing with local partners">
@@ -116,13 +216,24 @@
       <h2>2. Your captions</h2>
     </div>
 
+    <div class="generate-row">
+      <button class="upload-btn" id="generate-btn" type="button">Generate my captions</button>
+      <span class="usage-note" id="usage-note"></span>
+    </div>
+    <div class="quota-banner" id="quota-banner" hidden>
+      <p>You've used all 3 free caption generations this month. <button class="link-btn" id="quota-upgrade-btn" type="button">Upgrade &mdash; $5/month</button> for unlimited generations.</p>
+    </div>
+
     <div class="channel-card" data-channel="meta">
       <div class="channel-head">
         <div>
           <h3>Instagram &amp; Facebook</h3>
           <p class="channel-sub">General engaged public &middot; short, 2&ndash;3 sentences</p>
         </div>
-        <button class="copy-btn" data-target="meta-output" type="button">Copy</button>
+        <div class="channel-actions">
+          <button class="regen-btn" data-channel="meta" type="button">Regenerate</button>
+          <button class="copy-btn" data-target="meta-output" type="button">Copy</button>
+        </div>
       </div>
       <div class="output-text" id="meta-output"></div>
       <div class="meter-row">
@@ -137,7 +248,10 @@
           <h3>LinkedIn</h3>
           <p class="channel-sub">Sector peers, media, donors, partners &middot; medium, 3&ndash;5+ sentences with data</p>
         </div>
-        <button class="copy-btn" data-target="linkedin-output" type="button">Copy</button>
+        <div class="channel-actions">
+          <button class="regen-btn" data-channel="linkedin" type="button">Regenerate</button>
+          <button class="copy-btn" data-target="linkedin-output" type="button">Copy</button>
+        </div>
       </div>
       <div class="output-text" id="linkedin-output"></div>
       <div class="meter-row">
@@ -149,10 +263,13 @@
     <div class="channel-card" data-channel="website">
       <div class="channel-head">
         <div>
-          <h3>Website &amp; Insite</h3>
-          <p class="channel-sub">Deep-interest readers, internal staff &middot; long, 5&ndash;8+ sentences, full framework</p>
+          <h3>Website</h3>
+          <p class="channel-sub">Deep-interest readers &middot; long, 5&ndash;8+ sentences, full framework</p>
         </div>
-        <button class="copy-btn" data-target="website-output" type="button">Copy</button>
+        <div class="channel-actions">
+          <button class="regen-btn" data-channel="website" type="button">Regenerate</button>
+          <button class="copy-btn" data-target="website-output" type="button">Copy</button>
+        </div>
       </div>
       <div class="output-text" id="website-output"></div>
       <div class="meter-row">
@@ -171,10 +288,42 @@
 
 </main>
 
+<div class="image-panel-wrap">
+  <section class="panel image-panel" id="image-caption-section">
+    <div class="panel-head">
+      <h2>3. Image caption</h2>
+    </div>
+    <p class="image-panel-sub">Upload the photo you're posting alongside this story to get a short caption for its file name or alt text &mdash; 3 to 4 words, written by looking at the actual image.</p>
+    <p class="image-availability" id="image-availability">Checking availability&hellip;</p>
+
+    <div class="image-uploader" id="image-uploader" hidden>
+      <label class="upload-btn" for="image-input">Choose image</label>
+      <input type="file" id="image-input" hidden>
+      <span class="image-status" id="image-status"></span>
+    </div>
+
+    <div class="image-preview" id="image-preview" hidden>
+      <img id="image-preview-img" alt="">
+      <div class="image-caption-result">
+        <div class="output-text" id="image-caption-output"></div>
+        <div class="image-caption-actions">
+          <button class="regen-btn" id="image-regen-btn" type="button" hidden>Regenerate</button>
+          <button class="copy-btn" id="image-copy-btn" type="button" hidden>Copy</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
 <footer class="foot">
   <p>Built from an internal Caption Guidelines framework: same 12 questions, three channel lengths, your own words assembled &mdash; not generated from scratch.</p>
+  <p class="foot-credit">Product division by @braincopia</p>
 </footer>
 
+<script>
+  // Point this at your deployed server/ API before publishing (see server/README.md).
+  window.CAPTION_API_BASE = window.CAPTION_API_BASE || "http://localhost:4000";
+</script>
 <script src="script.js"></script>
 </body>
 </html>
