@@ -532,6 +532,10 @@
     variantIndex.website = 0;
     hasGenerated = false;
     generateCaptions();
+    clearDraft();
+    updateShapeRing();
+    updateStoryTitle();
+    updateDraftBadge();
   });
 
   async function copyText(text) {
@@ -766,8 +770,156 @@
     hasGenerated = true;
     generateCaptions();
     renderStatus();
+    updateDraftBadge();
   });
 
   checkStoredLicense();
+
+  // ---------- channel tabs + wand quick-regenerate ----------
+
+  let activeChannelTab = "meta";
+  const tabButtons = document.querySelectorAll(".tab-btn[data-tab]");
+  const tabPanels = document.querySelectorAll(".channel-card[data-tab-panel]");
+
+  function setActiveTab(tab) {
+    activeChannelTab = tab;
+    tabButtons.forEach((btn) => {
+      const isActive = btn.getAttribute("data-tab") === tab;
+      btn.classList.toggle("active", isActive);
+      btn.setAttribute("aria-selected", isActive ? "true" : "false");
+    });
+    tabPanels.forEach((panel) => {
+      const isActive = panel.getAttribute("data-tab-panel") === tab;
+      panel.classList.toggle("active", isActive);
+      panel.hidden = !isActive;
+    });
+  }
+  tabButtons.forEach((btn) => {
+    btn.addEventListener("click", () => setActiveTab(btn.getAttribute("data-tab")));
+  });
+
+  const wandBtn = document.getElementById("wand-regen-btn");
+  wandBtn.addEventListener("click", () => {
+    const activeRegen = document.querySelector(`.regen-btn[data-channel="${activeChannelTab}"]`);
+    if (activeRegen) activeRegen.click();
+  });
+
+  // ---------- draft badge (reflects whether captions have been generated yet) ----------
+
+  const draftBadge = document.getElementById("draft-badge");
+  function updateDraftBadge() {
+    draftBadge.textContent = hasGenerated ? "Generated" : "Draft";
+    draftBadge.classList.toggle("is-ready", hasGenerated);
+  }
+  updateDraftBadge();
+
+  // ---------- story shape counter ----------
+  //
+  // A quick, honest sense of how filled-in the core story is — counts only
+  // the 9 narrative boxes (not the optional mentions/tags/donor/partner
+  // attribution fields below them).
+
+  const SHAPE_FIELD_IDS = [
+    "who", "where", "issue", "involvement", "changed",
+    "why", "quote", "howmany", "timeframe"
+  ];
+  const shapeRingFill = document.getElementById("shape-ring-fill");
+  const shapeCount = document.getElementById("shape-count");
+  const shapeSub = document.getElementById("shape-sub");
+  const SHAPE_RING_CIRCUMFERENCE = 2 * Math.PI * 27;
+
+  function updateShapeRing() {
+    const filled = SHAPE_FIELD_IDS.filter((id) => val(id)).length;
+    const total = SHAPE_FIELD_IDS.length;
+    shapeCount.textContent = `${filled}/${total}`;
+    shapeRingFill.setAttribute(
+      "stroke-dashoffset",
+      String(SHAPE_RING_CIRCUMFERENCE * (1 - filled / total))
+    );
+    if (filled === 0) {
+      shapeSub.textContent = "A beginning is enough.";
+    } else if (filled < total) {
+      shapeSub.textContent = "Add more when you can.";
+    } else {
+      shapeSub.textContent = "The full shape is here.";
+    }
+  }
+  SHAPE_FIELD_IDS.forEach((id) => {
+    fields[id].addEventListener("input", updateShapeRing);
+  });
+
+  // ---------- breadcrumb story title ----------
+
+  const storyTitleEl = document.getElementById("story-title");
+  function updateStoryTitle() {
+    const who = val("who");
+    storyTitleEl.textContent = who ? firstName(who) + "'s story" : "Untitled field story";
+  }
+  fields.who.addEventListener("input", updateStoryTitle);
+
+  // ---------- new story (sidebar nav) ----------
+
+  document.getElementById("nav-new-story").addEventListener("click", () => {
+    document.getElementById("clear-btn").click();
+  });
+
+  // ---------- autosave draft to localStorage ----------
+  //
+  // Only ever written to this browser's own storage — nothing leaves the
+  // device. Makes the "Autosaved locally" indicator in the top bar true
+  // rather than decorative.
+
+  const DRAFT_KEY = "captiongen_story_draft";
+  let draftSaveTimer = null;
+
+  function saveDraft() {
+    const draft = {};
+    ids.forEach((id) => { draft[id] = fields[id].value; });
+    try {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+    } catch (e) {
+      // storage unavailable (private browsing, quota) — fail silently
+    }
+  }
+  function scheduleDraftSave() {
+    clearTimeout(draftSaveTimer);
+    draftSaveTimer = setTimeout(saveDraft, 400);
+  }
+  function clearDraft() {
+    clearTimeout(draftSaveTimer);
+    try {
+      localStorage.removeItem(DRAFT_KEY);
+    } catch (e) {
+      // ignore
+    }
+  }
+  function loadDraft() {
+    let stored;
+    try {
+      stored = localStorage.getItem(DRAFT_KEY);
+    } catch (e) {
+      return;
+    }
+    if (!stored) return;
+    let draft;
+    try {
+      draft = JSON.parse(stored);
+    } catch (e) {
+      return;
+    }
+    ids.forEach((id) => {
+      if (typeof draft[id] === "string" && fields[id]) fields[id].value = draft[id];
+    });
+  }
+
+  ids.forEach((id) => {
+    const el = fields[id];
+    el.addEventListener("input", scheduleDraftSave);
+    if (el.tagName === "SELECT") el.addEventListener("change", scheduleDraftSave);
+  });
+
+  loadDraft();
+  updateShapeRing();
+  updateStoryTitle();
 
 })();

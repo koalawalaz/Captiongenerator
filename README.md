@@ -115,15 +115,24 @@ GitHub Pages, or the Claude artifact link.
 ## Using it
 
 Open `index.html` in a browser (or serve the folder with any static file
-server) — no backend needed for normal use. Fill in the boxes on the left
-and click **Generate my captions** to populate the three captions on the
-right. As you start typing in the story boxes (issue, involvement,
+server) — no backend needed for normal use. Fill in the story panel on the
+left and click **Generate my captions** to populate the caption panel on
+the right; the three channels sit behind tabs (IG/FB, LinkedIn, Website),
+and the wand button next to "Your caption" regenerates whichever tab is
+open. As you start typing in the story boxes (issue, involvement,
 changed, why, quote), a row of clickable example phrasings appears
 underneath to help if you're stuck — click one to drop it into the box.
 Each caption has a **Copy** button and a live sentence counter against the
 channel's target length. Two optional boxes — **project phase** and
 **website link** — strengthen the LinkedIn caption specifically, per the
 guidelines' note to add project phase and a link back to the full story.
+
+The **story shape** indicator (top right) counts how many of the 9 core
+narrative boxes are filled in, and the **"Autosaved locally"** indicator
+(top bar) is real, not decorative — the story is saved to this browser's
+own `localStorage` as you type, and restored if you reload the page.
+Nothing is sent anywhere; **New story** in the sidebar clears both the
+form and the saved draft.
 
 No build step, no dependencies, no data leaves the browser during normal
 use — `server/` only comes into play at the moment someone actually pays.
