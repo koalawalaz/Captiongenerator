@@ -287,6 +287,31 @@ img, svg, table{max-width:100%;}
   background-size:28px 28px;
 }
 
+.mode-toggle{
+  display:inline-flex;
+  gap:4px;
+  background:var(--ground);
+  border:1px solid var(--line);
+  border-radius:999px;
+  padding:4px;
+  margin-bottom:22px;
+}
+.mode-toggle-btn{
+  border:none;
+  background:none;
+  padding:8px 20px;
+  border-radius:999px;
+  font-family:inherit;
+  font-size:0.86rem;
+  font-weight:600;
+  color:var(--ink-soft);
+  cursor:pointer;
+}
+.mode-toggle-btn.active{
+  background:var(--sidebar-bg);
+  color:#fff;
+}
+
 .workspace-head{
   display:flex;
   align-items:flex-start;
@@ -899,6 +924,88 @@ input[type="range"]::-moz-range-track{
   color:var(--ink-soft);
   border-left:3px solid var(--accent);
   padding-left:8px;
+}
+
+/* ---------- Full Story output ---------- */
+
+.fullstory-output[hidden]{display:none;}
+.fs-kicker{
+  margin:0 0 8px;
+  font-family:var(--font-mono);
+  font-size:0.7rem;
+  font-weight:700;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  color:var(--accent-text);
+}
+.fs-headline{
+  margin:0 0 8px;
+  font-family:var(--font-serif);
+  font-size:1.6rem;
+  font-weight:700;
+  line-height:1.25;
+  color:var(--ink);
+}
+.fs-dek{
+  margin:0 0 20px;
+  font-size:1rem;
+  font-style:italic;
+  color:var(--ink-soft);
+  line-height:1.5;
+  padding-bottom:16px;
+  border-bottom:1px solid var(--line);
+}
+.fs-para{
+  margin:0 0 16px;
+  font-size:0.96rem;
+  line-height:1.65;
+  color:var(--ink);
+}
+.fs-para-block{margin-bottom:16px;}
+.fs-para-block .fs-para{margin-bottom:0;}
+.fs-para-label{
+  display:block;
+  margin:0 0 6px;
+  font-family:var(--font-mono);
+  font-size:0.68rem;
+  font-weight:700;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  color:var(--accent-text);
+}
+.fs-para-label[hidden]{display:none;}
+.fs-quotes{margin:4px 0 20px;}
+.fs-quote{
+  margin:0 0 14px;
+  padding:4px 0 4px 18px;
+  border-left:3px solid var(--accent);
+}
+.fs-quote-text{
+  margin:0 0 4px;
+  font-family:var(--font-serif);
+  font-size:1.08rem;
+  font-style:italic;
+  line-height:1.5;
+  color:var(--ink);
+}
+.fs-quote-attribution{
+  margin:0;
+  font-size:0.8rem;
+  color:var(--ink-soft);
+}
+.fs-quote-attribution::before{content:"— ";}
+.fs-learn-more{
+  margin:0 0 4px;
+  font-size:0.88rem;
+  color:var(--accent-text);
+}
+.fs-learn-more[hidden]{display:none;}
+.fs-actions{
+  display:flex;
+  gap:8px;
+  margin-top:20px;
+  padding-top:16px;
+  border-top:1px solid var(--line);
 }
 
 .scan-card{

@@ -7,7 +7,8 @@
     "donorHandle", "partnerHandle", "orgHandle", "programme",
     "phase", "link", "tone", "audience",
     "timeframeMode", "timeframeDate", "timeframeDateTo", "timeframeNumber", "timeframeUnit",
-    "detailSlider"
+    "detailSlider",
+    "fsRegion", "fsStoryType", "fsQuote2", "fsQuote2Attribution", "fsWhatsNext"
   ];
   const fields = {};
   ids.forEach((id) => { fields[id] = document.getElementById(id); });
@@ -41,7 +42,7 @@
   const scanCard = document.getElementById("scan-card");
   const scanList = document.getElementById("scan-list");
 
-  const variantIndex = { meta: 0, linkedin: 0, website: 0 };
+  const variantIndex = { meta: 0, linkedin: 0, website: 0, fullstory: 0 };
   const MAX_DETAIL_LEVEL = 5;
 
   // ---------- text helpers ----------
@@ -314,6 +315,163 @@
     if (detailLevel >= 5 && v.results) sentences.push(sentenceFrom(v.results));
 
     return joinSentences(sentences);
+  }
+
+  // ---------- Full Story mode ----------
+  //
+  // A separate, long-form structured output — distinct from the three
+  // short captions above. Same no-invention rule applies: Region and
+  // Programme family are only ever used to choose categorical framing
+  // words (e.g. "As part of our protection work") and a display kicker
+  // line, never to imply a stat, historical detail, or claim about the
+  // region/sector that the user didn't type themselves.
+
+  const REGION_LABELS = {
+    mena: "Middle East & North Africa",
+    ssa: "Sub-Saharan Africa",
+    sasia: "South & Southeast Asia",
+    eca: "Europe & Central Asia",
+    lac: "Latin America & Caribbean",
+    eap: "East Asia & Pacific",
+  };
+
+  const STORY_TYPE_LABELS = {
+    impact: "Impact story",
+    success: "Success story",
+    casestudy: "Case study",
+  };
+
+  // Categorical framing only — names the sector the user selected, never
+  // asserts a fact about it. Keyed by Programme *family* (protection,
+  // economic, hdp, shelter, innovation, csoe).
+  const PROGRAMME_FAMILY_FRAME = {
+    protection: "protection",
+    economic: "economic recovery",
+    hdp: "peacebuilding",
+    shelter: "shelter and WASH",
+    innovation: "innovation",
+    csoe: "civil society engagement",
+  };
+
+  function getProgrammeFamilyId(programmeValue) {
+    return PROGRAMME_VALUE_TO_FAMILY[programmeValue] || "";
+  }
+
+  function fsBuildHeadline(v, storyType) {
+    const where = clean(v.where);
+    if (storyType === "success") {
+      const name = firstName(v.who);
+      const body = clean(v.changed) || clean(v.issue);
+      if (name && body) return `${name}: ${upper1(body)}`;
+      if (body) return upper1(body);
+      return name || "Their story";
+    }
+    if (storyType === "casestudy") {
+      const issue = clean(v.issue);
+      const changed = clean(v.changed);
+      if (issue && changed) return `${upper1(issue)} — ${lower1(changed)}`;
+      return upper1(issue || changed || where || "Case study");
+    }
+    // impact (default): lead with the number/outcome, then place it
+    const lead = clean(v.results) || clean(v.changed) || clean(v.issue);
+    if (lead && where) return `${upper1(lead)} — ${where}`;
+    return upper1(lead || where || "Their story");
+  }
+
+  function fsBuildDek(v) {
+    // Only ever "why" — involvement/issue/changed already appear as their
+    // own paragraphs below, and repeating one here as a fallback would
+    // just duplicate it instead of adding a distinct summary line.
+    return v.why ? sentenceFrom(v.why) : "";
+  }
+
+  function fsBuildOpening(v, variant) {
+    const whereLeadin = WHERE_LEADINS[variant % WHERE_LEADINS.length];
+    const timeframeLeadin = pick(TIMEFRAME_LEADINS, variant);
+    let opening = "";
+    if (v.who && v.where) opening += `${upper1(v.who)}, ${whereLeadin(v.where)}.`;
+    else if (v.who) opening += `${upper1(v.who)}.`;
+    else if (v.where) opening += `${upper1(v.where)}.`;
+    if (v.timeframe) {
+      const tf = ` ${timeframeLeadin} ${stripLeadingSince(v.timeframe)}.`;
+      opening += opening ? tf : upper1(clean(tf)) + ".";
+    }
+    return opening;
+  }
+
+  function fsBuildResponse(v, familyId) {
+    if (!v.involvement) return "";
+    const theme = PROGRAMME_FAMILY_FRAME[familyId];
+    if (!theme) return sentenceFrom(v.involvement);
+    return `${upper1(`as part of our ${theme} work, ${lower1(clean(v.involvement))}`)}.`;
+  }
+
+  function fsBuildQuotes(v) {
+    const quotes = [];
+    if (v.quote) {
+      quotes.push({
+        text: upper1(stripQuotes(v.quote)),
+        attribution: firstName(v.who) || "Programme participant",
+      });
+    }
+    if (v.fsQuote2) {
+      quotes.push({
+        text: upper1(stripQuotes(v.fsQuote2)),
+        attribution: clean(v.fsQuote2Attribution) || "Team member",
+      });
+    }
+    return quotes;
+  }
+
+  function fsBuildImpact(v) {
+    const sentences = [];
+    if (v.howmany) sentences.push(`${upper1(clean(v.howmany))} have been reached through this work.`);
+    if (v.results) sentences.push(sentenceFrom(v.results));
+    return joinSentences(sentences);
+  }
+
+  function fsBuildClosing(v, tone, audience, variant) {
+    const sentences = [];
+    const donorSentence = v.donor ? pick(buildDonorCreditTails(tone), variant)(v.donor) : null;
+    const partnerSentence = v.partner ? pick(PARTNER_PHRASES, variant)(v.partner) : null;
+    if (audience === "partners") {
+      if (partnerSentence) sentences.push(partnerSentence);
+      if (donorSentence) sentences.push(donorSentence);
+    } else {
+      if (donorSentence) sentences.push(donorSentence);
+      if (partnerSentence) sentences.push(partnerSentence);
+    }
+    if (v.fsWhatsNext) sentences.push(sentenceFrom(v.fsWhatsNext));
+    return joinSentences(sentences);
+  }
+
+  function buildFullStory(v, variant, tone, audience) {
+    const storyType = v.fsStoryType || "impact";
+    const familyId = getProgrammeFamilyId(v.programme);
+
+    const kickerParts = [
+      STORY_TYPE_LABELS[storyType],
+      familyId ? upper1(PROGRAMME_FAMILY_FRAME[familyId]) : "",
+      v.fsRegion ? REGION_LABELS[v.fsRegion] : "",
+    ].filter(Boolean);
+
+    const isCaseStudy = storyType === "casestudy";
+
+    return {
+      kicker: kickerParts.join(" · "),
+      headline: fsBuildHeadline(v, storyType),
+      dek: fsBuildDek(v),
+      opening: fsBuildOpening(v, variant),
+      situationLabel: isCaseStudy ? "The problem" : "",
+      situation: sentenceFrom(v.issue),
+      responseLabel: isCaseStudy ? "Our response" : "",
+      response: fsBuildResponse(v, familyId),
+      quotes: fsBuildQuotes(v),
+      impactLabel: isCaseStudy ? "The result" : "",
+      impact: fsBuildImpact(v),
+      closing: fsBuildClosing(v, tone, audience, variant),
+      link: clean(v.link),
+    };
   }
 
   // ---------- programme -> hashtag map ----------
@@ -649,6 +807,98 @@
     renderScan(hits);
   }
 
+  // ---------- Full Story render ----------
+
+  const fsEls = {
+    kicker: document.getElementById("fs-kicker"),
+    headline: document.getElementById("fs-headline"),
+    dek: document.getElementById("fs-dek"),
+    opening: document.getElementById("fs-opening"),
+    situationLabel: document.getElementById("fs-situation-label"),
+    situation: document.getElementById("fs-situation"),
+    responseLabel: document.getElementById("fs-response-label"),
+    response: document.getElementById("fs-response"),
+    quotes: document.getElementById("fs-quotes"),
+    impactLabel: document.getElementById("fs-impact-label"),
+    impact: document.getElementById("fs-impact"),
+    closing: document.getElementById("fs-closing"),
+    learnMore: document.getElementById("fs-learn-more"),
+  };
+
+  function setFsLabel(el, text) {
+    if (text) { el.textContent = text; el.hidden = false; }
+    else { el.textContent = ""; el.hidden = true; }
+  }
+
+  let lastFullStory = null;
+
+  function generateFullStory() {
+    const v = {};
+    ids.forEach((id) => { v[id] = val(id); });
+    const tone = v.tone || "balanced";
+    const audience = v.audience || "donors";
+
+    const story = buildFullStory(v, variantIndex.fullstory, tone, audience);
+    lastFullStory = story;
+
+    fsEls.kicker.textContent = story.kicker;
+    fsEls.headline.textContent = story.headline;
+    fsEls.dek.textContent = story.dek;
+    fsEls.opening.textContent = story.opening;
+    setFsLabel(fsEls.situationLabel, story.situationLabel);
+    fsEls.situation.textContent = story.situation;
+    setFsLabel(fsEls.responseLabel, story.responseLabel);
+    fsEls.response.textContent = story.response;
+    setFsLabel(fsEls.impactLabel, story.impactLabel);
+    fsEls.impact.textContent = story.impact;
+    fsEls.closing.textContent = story.closing;
+
+    fsEls.quotes.innerHTML = "";
+    story.quotes.forEach((q) => {
+      const wrap = document.createElement("div");
+      wrap.className = "fs-quote";
+      const p = document.createElement("p");
+      p.className = "fs-quote-text";
+      p.textContent = `"${q.text}"`;
+      const cite = document.createElement("p");
+      cite.className = "fs-quote-attribution";
+      cite.textContent = q.attribution;
+      wrap.appendChild(p);
+      wrap.appendChild(cite);
+      fsEls.quotes.appendChild(wrap);
+    });
+
+    if (story.link) {
+      fsEls.learnMore.textContent = `Learn more: ${story.link}`;
+      fsEls.learnMore.hidden = false;
+    } else {
+      fsEls.learnMore.textContent = "";
+      fsEls.learnMore.hidden = true;
+    }
+
+    const scanLabel = STORY_TYPE_LABELS[v.fsStoryType || "impact"];
+    const hits = [
+      ...scanText(scanLabel, [story.opening, story.situation, story.response, story.impact, story.closing].join(" ")),
+      ...scanText("your Quote box", v.quote),
+      ...scanText("your Why box", v.why),
+    ];
+    renderScan(hits);
+  }
+
+  function fullStoryAsText(story) {
+    const parts = [story.kicker, story.headline, story.dek, story.opening];
+    if (story.situationLabel) parts.push(story.situationLabel.toUpperCase());
+    parts.push(story.situation);
+    if (story.responseLabel) parts.push(story.responseLabel.toUpperCase());
+    parts.push(story.response);
+    story.quotes.forEach((q) => parts.push(`"${q.text}" — ${q.attribution}`));
+    if (story.impactLabel) parts.push(story.impactLabel.toUpperCase());
+    parts.push(story.impact);
+    parts.push(story.closing);
+    if (story.link) parts.push(`Learn more: ${story.link}`);
+    return parts.filter(Boolean).join("\n\n");
+  }
+
   // ---------- suggestions ----------
 
   const SUGGESTIONS = {
@@ -733,11 +983,15 @@
     updateDetailSliderFill();
     fields.tone.value = "balanced";
     fields.audience.value = "donors";
+    fields.fsRegion.value = "";
+    fields.fsStoryType.value = "impact";
     variantIndex.meta = 0;
     variantIndex.linkedin = 0;
     variantIndex.website = 0;
+    variantIndex.fullstory = 0;
     hasGenerated = false;
     generateCaptions();
+    clearFullStoryOutput();
     clearDraft();
     updateShapeRing();
     updateStoryTitle();
@@ -974,7 +1228,8 @@
       setFreeUsed(getFreeUsed() + 1);
     }
     hasGenerated = true;
-    generateCaptions();
+    if (appMode === "fullstory") generateFullStory();
+    else generateCaptions();
     renderStatus();
     updateDraftBadge();
   });
@@ -1006,8 +1261,86 @@
 
   const wandBtn = document.getElementById("wand-regen-btn");
   wandBtn.addEventListener("click", () => {
+    if (appMode === "fullstory") {
+      document.getElementById("fs-regen-btn").click();
+      return;
+    }
     const activeRegen = document.querySelector(`.regen-btn[data-channel="${activeChannelTab}"]`);
     if (activeRegen) activeRegen.click();
+  });
+
+  // ---------- Captions / Full Story mode toggle ----------
+  //
+  // Both modes share the same story fields, Tone, Audience, and
+  // Programme dropdowns — only the destination (three short captions
+  // vs. one long-form structured story) and the Full-Story-only fields
+  // (Region, Story type, second quote, What's next) differ.
+
+  let appMode = "captions";
+  const modeToggleButtons = document.querySelectorAll(".mode-toggle-btn[data-app-mode]");
+  const fullstoryFields = document.getElementById("fullstory-fields");
+  const captionsControls = document.getElementById("captions-controls");
+  const captionsOutput = document.getElementById("captions-output");
+  const fullstoryOutput = document.getElementById("fullstory-output");
+  const stepLabel = document.getElementById("step-label");
+  const workspaceTitleEl = document.getElementById("workspace-title");
+  const outputEyebrow = document.getElementById("output-eyebrow");
+  const outputTitle = document.getElementById("output-title");
+
+  function setAppMode(mode) {
+    appMode = mode;
+    const isFullStory = mode === "fullstory";
+    modeToggleButtons.forEach((btn) => {
+      const active = btn.getAttribute("data-app-mode") === mode;
+      btn.classList.toggle("active", active);
+      btn.setAttribute("aria-selected", active ? "true" : "false");
+    });
+    fullstoryFields.hidden = !isFullStory;
+    captionsControls.hidden = isFullStory;
+    captionsOutput.hidden = isFullStory;
+    fullstoryOutput.hidden = !isFullStory;
+    generateBtn.textContent = isFullStory ? "Generate my story" : "Generate my captions";
+    outputEyebrow.textContent = isFullStory ? "02 · Shape the story" : "02 · Shape the words";
+    outputTitle.textContent = isFullStory ? "Your story" : "Your caption";
+    stepLabel.textContent = isFullStory ? "01 · Gather the full story" : "01 · Gather the story";
+    workspaceTitleEl.innerHTML = isFullStory
+      ? 'One story, told <span class="accent-serif">in full.</span>'
+      : 'Start with what <span class="accent-serif">actually happened.</span>';
+  }
+
+  modeToggleButtons.forEach((btn) => {
+    btn.addEventListener("click", () => setAppMode(btn.getAttribute("data-app-mode")));
+  });
+
+  function clearFullStoryOutput() {
+    lastFullStory = null;
+    fsEls.kicker.textContent = "";
+    fsEls.headline.textContent = "";
+    fsEls.dek.textContent = "";
+    fsEls.opening.textContent = "";
+    setFsLabel(fsEls.situationLabel, "");
+    fsEls.situation.textContent = "";
+    setFsLabel(fsEls.responseLabel, "");
+    fsEls.response.textContent = "";
+    fsEls.quotes.innerHTML = "";
+    setFsLabel(fsEls.impactLabel, "");
+    fsEls.impact.textContent = "";
+    fsEls.closing.textContent = "";
+    fsEls.learnMore.hidden = true;
+    fsEls.learnMore.textContent = "";
+    if (scanCard && appMode === "fullstory") { scanCard.hidden = true; scanList.innerHTML = ""; }
+  }
+
+  document.getElementById("fs-regen-btn").addEventListener("click", () => {
+    if (!hasGenerated) return;
+    variantIndex.fullstory = (variantIndex.fullstory + 1) % 3;
+    generateFullStory();
+  });
+
+  document.getElementById("fs-copy-btn").addEventListener("click", async (e) => {
+    if (!lastFullStory) return;
+    await copyText(fullStoryAsText(lastFullStory));
+    flashCopied(e.currentTarget);
   });
 
   // ---------- draft badge (reflects whether captions have been generated yet) ----------
@@ -1269,13 +1602,16 @@
     if (el.tagName === "SELECT") el.addEventListener("change", scheduleDraftSave);
   });
 
-  fields.tone.addEventListener("change", () => {
-    if (hasGenerated) generateCaptions();
-  });
+  function regenerateActiveMode() {
+    if (!hasGenerated) return;
+    if (appMode === "fullstory") generateFullStory();
+    else generateCaptions();
+  }
 
-  fields.audience.addEventListener("change", () => {
-    if (hasGenerated) generateCaptions();
-  });
+  fields.tone.addEventListener("change", regenerateActiveMode);
+  fields.audience.addEventListener("change", regenerateActiveMode);
+  fields.fsRegion.addEventListener("change", regenerateActiveMode);
+  fields.fsStoryType.addEventListener("change", regenerateActiveMode);
 
   // ---------- level-of-detail slider ----------
   //

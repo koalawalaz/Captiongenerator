@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Caption Generator</title>
-<link rel="stylesheet" href="style.css?v=20260901k">
+<link rel="stylesheet" href="style.css?v=20260902a">
 </head>
 <body>
 
@@ -68,10 +68,15 @@
 
     <main class="workspace" id="app-main">
 
+      <div class="mode-toggle" role="tablist">
+        <button class="mode-toggle-btn active" data-app-mode="captions" type="button" role="tab" aria-selected="true">Captions</button>
+        <button class="mode-toggle-btn" data-app-mode="fullstory" type="button" role="tab" aria-selected="false">Full Story</button>
+      </div>
+
       <div class="workspace-head">
         <div class="workspace-head-text">
-          <p class="step-label">01 &middot; Gather the story</p>
-          <h1 class="workspace-title">Start with what <span class="accent-serif">actually happened.</span></h1>
+          <p class="step-label" id="step-label">01 &middot; Gather the story</p>
+          <h1 class="workspace-title" id="workspace-title">Start with what <span class="accent-serif">actually happened.</span></h1>
         </div>
         <div class="shape-badge">
           <svg class="shape-ring" viewBox="0 0 64 64" aria-hidden="true">
@@ -288,50 +293,98 @@
               </select>
               <p class="field-hint">Shifts which of your own details get emphasized first &mdash; donor credit, partner credit, or results.</p>
             </div>
+
+            <div id="fullstory-fields" hidden>
+              <div class="field-section-head">
+                <span class="divider-letter">F</span>
+                <span class="divider-title">Full Story details</span>
+                <span class="opt-pill">Full Story mode</span>
+                <span class="divider-rule"></span>
+              </div>
+
+              <div class="field-row">
+                <div class="field">
+                  <label for="fsRegion">Region</label>
+                  <select id="fsRegion">
+                    <option value="" selected>Not specified</option>
+                    <option value="mena">Middle East &amp; North Africa</option>
+                    <option value="ssa">Sub-Saharan Africa</option>
+                    <option value="sasia">South &amp; Southeast Asia</option>
+                    <option value="eca">Europe &amp; Central Asia</option>
+                    <option value="lac">Latin America &amp; Caribbean</option>
+                    <option value="eap">East Asia &amp; Pacific</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="fsStoryType">Story type</label>
+                  <select id="fsStoryType">
+                    <option value="impact" selected>Impact story</option>
+                    <option value="success">Success story</option>
+                    <option value="casestudy">Case study</option>
+                  </select>
+                </div>
+              </div>
+              <p class="field-hint">Region and story type shape framing and word choice only &mdash; never facts, stats, or context beyond what you've entered.</p>
+
+              <div class="field">
+                <label for="fsQuote2">Second quote / perspective <span class="opt">optional, a different voice than Quote above</span></label>
+                <textarea id="fsQuote2" rows="2" placeholder="e.g. a staff member's perspective, if the Quote above is a beneficiary's"></textarea>
+              </div>
+              <div class="field">
+                <label for="fsQuote2Attribution">Second quote attribution <span class="opt">optional</span></label>
+                <input type="text" id="fsQuote2Attribution" placeholder="e.g. Program Officer, YourOrg">
+              </div>
+              <div class="field">
+                <label for="fsWhatsNext">What's next <span class="opt">optional &mdash; ongoing needs or the next phase</span></label>
+                <textarea id="fsWhatsNext" rows="2" placeholder="e.g. the programme is expanding to two more districts next year"></textarea>
+              </div>
+            </div>
           </form>
         </section>
 
         <section class="panel output-panel">
           <div class="panel-head">
             <div>
-              <p class="panel-eyebrow">02 &middot; Shape the words</p>
-              <h2>Your caption</h2>
+              <p class="panel-eyebrow" id="output-eyebrow">02 &middot; Shape the words</p>
+              <h2 id="output-title">Your caption</h2>
             </div>
             <button class="wand-btn" id="wand-regen-btn" type="button" title="Regenerate this caption's phrasing">
               <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2v3M10 15v3M2 10h3M15 10h3M4.5 4.5l2 2M13.5 13.5l2 2M15.5 4.5l-2 2M6.5 13.5l-2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M10 6.5 11.2 9l2.5 1.2-2.5 1.3-1.2 2.5-1.2-2.5-2.5-1.3 2.5-1.2z" fill="currentColor"/></svg>
             </button>
           </div>
 
-          <div class="tab-list" role="tablist">
-            <button class="tab-btn active" data-tab="meta" type="button" role="tab" aria-selected="true">
-              <span class="tab-name">IG / FB</span>
-              <span class="tab-target">2&ndash;3 sentences</span>
-            </button>
-            <button class="tab-btn" data-tab="linkedin" type="button" role="tab" aria-selected="false">
-              <span class="tab-name">LinkedIn</span>
-              <span class="tab-target">3&ndash;5+ sentences</span>
-            </button>
-            <button class="tab-btn" data-tab="website" type="button" role="tab" aria-selected="false">
-              <span class="tab-name">Website</span>
-              <span class="tab-target">5&ndash;8+ sentences</span>
-            </button>
-          </div>
-
-          <div class="detail-slider-wrap">
-            <label for="detailSlider" class="detail-slider-label">Level of detail</label>
-            <div class="detail-slider-row">
-              <span class="detail-slider-end">Concise</span>
-              <input type="range" id="detailSlider" min="0" max="5" value="5" step="1">
-              <span class="detail-slider-end">Full detail</span>
+          <div id="captions-controls">
+            <div class="tab-list" role="tablist">
+              <button class="tab-btn active" data-tab="meta" type="button" role="tab" aria-selected="true">
+                <span class="tab-name">IG / FB</span>
+                <span class="tab-target">2&ndash;3 sentences</span>
+              </button>
+              <button class="tab-btn" data-tab="linkedin" type="button" role="tab" aria-selected="false">
+                <span class="tab-name">LinkedIn</span>
+                <span class="tab-target">3&ndash;5+ sentences</span>
+              </button>
+              <button class="tab-btn" data-tab="website" type="button" role="tab" aria-selected="false">
+                <span class="tab-name">Website</span>
+                <span class="tab-target">5&ndash;8+ sentences</span>
+              </button>
             </div>
-            <div class="detail-slider-tooltip" id="detail-slider-tooltip" hidden>
-              <div class="detail-tooltip-side">
-                <strong>Fewer sentences</strong>
-                <span>core facts only</span>
+
+            <div class="detail-slider-wrap">
+              <label for="detailSlider" class="detail-slider-label">Level of detail</label>
+              <div class="detail-slider-row">
+                <span class="detail-slider-end">Concise</span>
+                <input type="range" id="detailSlider" min="0" max="5" value="5" step="1">
+                <span class="detail-slider-end">Full detail</span>
               </div>
-              <div class="detail-tooltip-side">
-                <strong>More sentences</strong>
-                <span>reveals your optional boxes</span>
+              <div class="detail-slider-tooltip" id="detail-slider-tooltip" hidden>
+                <div class="detail-tooltip-side">
+                  <strong>Fewer sentences</strong>
+                  <span>core facts only</span>
+                </div>
+                <div class="detail-tooltip-side">
+                  <strong>More sentences</strong>
+                  <span>reveals your optional boxes</span>
+                </div>
               </div>
             </div>
           </div>
@@ -345,6 +398,40 @@
             <p>You've used all 3 free caption generations on this device. <button class="link-btn" id="quota-upgrade-btn" type="button">Upgrade &mdash; $5/month</button> for unlimited, or <button class="link-btn" id="quota-redeem-btn" type="button">enter your license key</button> if you already have one.</p>
           </div>
 
+          <div class="fullstory-output" id="fullstory-output" hidden>
+            <p class="fs-kicker" id="fs-kicker"></p>
+            <h3 class="fs-headline" id="fs-headline"></h3>
+            <p class="fs-dek" id="fs-dek"></p>
+
+            <p class="fs-para" id="fs-opening"></p>
+
+            <div class="fs-para-block">
+              <span class="fs-para-label" id="fs-situation-label" hidden></span>
+              <p class="fs-para" id="fs-situation"></p>
+            </div>
+
+            <div class="fs-para-block">
+              <span class="fs-para-label" id="fs-response-label" hidden></span>
+              <p class="fs-para" id="fs-response"></p>
+            </div>
+
+            <div class="fs-quotes" id="fs-quotes"></div>
+
+            <div class="fs-para-block">
+              <span class="fs-para-label" id="fs-impact-label" hidden></span>
+              <p class="fs-para" id="fs-impact"></p>
+            </div>
+
+            <p class="fs-para" id="fs-closing"></p>
+            <p class="fs-learn-more" id="fs-learn-more" hidden></p>
+
+            <div class="fs-actions">
+              <button class="regen-btn" id="fs-regen-btn" type="button">Regenerate</button>
+              <button class="copy-btn" id="fs-copy-btn" type="button">Copy story</button>
+            </div>
+          </div>
+
+          <div id="captions-output">
           <div class="channel-card active" data-channel="meta" data-tab-panel="meta">
             <div class="channel-head">
               <div>
@@ -426,6 +513,7 @@
             <p class="scan-intro">Flags stock phrases and vague fillers worth swapping for something specific.</p>
             <ul id="scan-list"></ul>
           </div>
+          </div>
         </section>
 
       </div>
@@ -470,6 +558,6 @@
     "y": "daJuKnjCmA25zB6JpzfYuHTs3JPyrh4X3omAUWeM9RQ"
   };
 </script>
-<script src="script.js?v=20260901k"></script>
+<script src="script.js?v=20260902a"></script>
 </body>
 </html>
