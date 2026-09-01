@@ -235,15 +235,15 @@
     return joinSentences(sentences);
   }
 
-  function buildWebsite(v, variant, tone = “balanced”) {
+  function buildWebsite(v, variant, tone = "balanced") {
     const sentences = [];
     const whereLeadin = WHERE_LEADINS[variant % WHERE_LEADINS.length];
     const timeframeLeadin = pick(TIMEFRAME_LEADINS, variant);
 
     if (v.quote) {
       const q = upper1(stripQuotes(v.quote));
-      const name = firstName(v.who) || “they say”;
-      sentences.push(`”${q}” — ${name}.`);
+      const name = firstName(v.who) || "they say";
+      sentences.push(`"${q}" — ${name}.`);
     }
 
     if (v.who && v.where) sentences.push(`${upper1(v.who)}, ${whereLeadin(v.where)}.`);
@@ -259,10 +259,10 @@
     if (v.changed) sentences.push(sentenceFrom(v.changed));
 
     if (v.timeframe || v.howmany) {
-      let s = “”;
+      let s = "";
       if (v.timeframe) s += `${timeframeLeadin} ${stripLeadingSince(v.timeframe)}, `;
-      s += v.howmany ? `the program has reached ${v.howmany}` : (s ? “the program has grown” : “The program has grown”);
-      s = clean(s) + “.”;
+      s += v.howmany ? `the program has reached ${v.howmany}` : (s ? "the program has grown" : "The program has grown");
+      s = clean(s) + ".";
       sentences.push(s);
     }
     if (v.results) sentences.push(sentenceFrom(v.results));
@@ -1030,12 +1030,6 @@
     familySelect.value = family;
     populateProgrammeTypes(family, value);
   }
-
-  // ---------- new story (sidebar nav) ----------
-
-  document.getElementById("nav-new-story").addEventListener("click", () => {
-    document.getElementById("clear-btn").click();
-  });
 
   // ---------- autosave draft to localStorage ----------
   //
