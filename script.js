@@ -1294,13 +1294,19 @@
     detailSlider.style.background = `linear-gradient(to right, var(--ok) ${pct}%, var(--ground) ${pct}%)`;
   }
 
+  let detailTooltipTimer = null;
   detailSlider.addEventListener("input", () => {
     updateDetailSliderFill();
     detailTooltip.hidden = false;
+    clearTimeout(detailTooltipTimer);
+    detailTooltipTimer = setTimeout(() => { detailTooltip.hidden = true; }, 1500);
     if (hasGenerated) generateCaptions();
   });
   ["change", "mouseup", "touchend", "blur"].forEach((evt) => {
-    detailSlider.addEventListener(evt, () => { detailTooltip.hidden = true; });
+    detailSlider.addEventListener(evt, () => {
+      clearTimeout(detailTooltipTimer);
+      detailTooltip.hidden = true;
+    });
   });
   updateDetailSliderFill();
 

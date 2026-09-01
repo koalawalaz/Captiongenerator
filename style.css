@@ -727,6 +727,7 @@ input[type="range"]::-moz-range-track{
   padding:10px 14px;
   z-index:5;
   box-shadow:0 6px 16px rgba(0,0,0,0.25);
+  pointer-events:none;
 }
 .detail-slider-tooltip[hidden]{display:none;}
 .detail-tooltip-side{
