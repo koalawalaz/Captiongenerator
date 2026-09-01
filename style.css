@@ -1,6 +1,6 @@
 :root{
-  --accent:#0072bc;
-  --accent-dark:#00558c;
+  --accent:#2400c4;
+  --accent-dark:#1a0091;
   --ink:#1f2224;
   --ink-soft:#565b60;
   --paper:#ffffff;
@@ -30,11 +30,38 @@ body{
   margin:0 auto;
   padding:28px 24px 22px;
 }
-.topbar h1{
-  margin:0 0 6px;
-  font-size:1.7rem;
+.brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin:0 0 8px;
+}
+.brand-icon{
+  width:34px;
+  height:28px;
+  flex:none;
   color:var(--accent);
-  letter-spacing:-0.01em;
+}
+.brand-word{
+  margin:0;
+  display:flex;
+  flex-direction:column;
+  line-height:1;
+}
+.brand-bold{
+  font-weight:800;
+  font-size:1rem;
+  letter-spacing:0.04em;
+  color:var(--accent);
+  text-transform:uppercase;
+}
+.brand-light{
+  font-weight:300;
+  font-size:1.55rem;
+  letter-spacing:0.03em;
+  color:var(--accent);
+  text-transform:uppercase;
+  margin-top:1px;
 }
 .tagline{
   margin:0;
@@ -148,7 +175,7 @@ select{cursor:pointer;}
 input[type="text"]:focus, textarea:focus, select:focus{
   outline:none;
   border-color:var(--accent);
-  box-shadow:0 0 0 3px rgba(0,114,188,0.15);
+  box-shadow:0 0 0 3px rgba(36,0,196,0.15);
 }
 
 .section-divider{
