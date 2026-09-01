@@ -41,16 +41,27 @@ The API listens on `PORT` (default 4000). Point the frontend at it by
 setting `window.CAPTION_API_BASE` before `script.js` loads (see
 `index.html`), or by editing the default in that same script tag.
 
-## Deploying
+## Deploying for free, with no expiration date
 
-`render.yaml` is a ready-to-use [Render](https://render.com) blueprint: a
-free Postgres database plus a free web service, wired together. In the
-Render dashboard: New → Blueprint → point it at this repo. Render will ask
-you to confirm the plan; `JWT_SECRET` is auto-generated, `DATABASE_URL` is
-wired to the database it creates for you automatically.
+Render's own free Postgres tier expires after about 30 days, so the
+database and the API are hosted separately: a free **Neon** Postgres
+database (no time limit — it pauses when idle and wakes back up on the
+next connection, it doesn't get deleted) plus a free **Render** web
+service for the API.
 
-Any other Node host works too (Railway, Fly.io, a plain VPS) — just set the
-same environment variables from `.env.example` and run
+**1. Create the database on [neon.tech](https://neon.tech)** (free, no
+card required): sign up, create a project, and copy the connection string
+it gives you (starts with `postgresql://...`).
+
+**2. Deploy the API on [Render](https://render.com)**: New → Blueprint →
+point it at this repo. Render reads `render.yaml` and sets up the web
+service; when it asks for `DATABASE_URL` (marked "set during deploy"),
+paste in the Neon connection string from step 1. `JWT_SECRET` is
+generated for you automatically.
+
+Any other Node host works too (a plain VPS, Fly.io) — just set the same
+environment variables from `.env.example` (using your Neon connection
+string for `DATABASE_URL`) and run
 `npm install && npx prisma migrate deploy && npm start`.
 
 After deploying, update `window.CAPTION_API_BASE` in `index.html` (and in
