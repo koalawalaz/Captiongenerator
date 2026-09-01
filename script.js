@@ -90,6 +90,16 @@
     "Full story on our website:",
     "See the full story at",
   ];
+  const DONOR_CREDIT_TAILS = [
+    (d) => `${DONOR_LEADINS[0](d)}, our team was able to respond.`,
+    (d) => `${DONOR_LEADINS[1](d)}, we were able to act quickly.`,
+    (d) => `${DONOR_LEADINS[2](d)}, this response was possible.`,
+  ];
+  const PARTNER_PHRASES = [
+    (p) => `${upper1(p)} worked alongside us on the ground throughout.`,
+    (p) => `${upper1(p)} was a critical partner in making this happen.`,
+    (p) => `Our local partner, ${p}, carried out much of this work directly.`,
+  ];
 
   // ---------- caption builders ----------
 
@@ -131,6 +141,10 @@
     const timeframeLeadin = pick(TIMEFRAME_LEADINS, variant);
     const donorLeadin = DONOR_LEADINS[variant % DONOR_LEADINS.length];
     const linkLeadin = pick(LINK_LEADINS, variant);
+    const whereLeadin = WHERE_LEADINS[variant % WHERE_LEADINS.length];
+
+    if (v.who && v.where) sentences.push(`${upper1(v.who)}, ${whereLeadin(v.where)}.`);
+    else if (v.who) sentences.push(`${upper1(v.who)}.`);
 
     let s1 = "";
     if (v.timeframe) s1 += `${timeframeLeadin} ${stripLeadingSince(v.timeframe)}, `;
@@ -138,9 +152,10 @@
     else s1 += s1 ? "our team " : "Our team ";
     if (v.howmany) s1 += `has reached ${v.howmany}`;
     else s1 += "has been at work";
-    if (v.results) s1 += `; ${lower1(v.results)}`;
     s1 = clean(upper1(s1)) + ".";
     sentences.push(s1);
+
+    if (v.results) sentences.push(sentenceFrom(v.results));
 
     if (v.donor || v.changed) {
       let s2 = "";
@@ -164,7 +179,6 @@
   function buildWebsite(v, variant) {
     const sentences = [];
     const whereLeadin = WHERE_LEADINS[variant % WHERE_LEADINS.length];
-    const donorLeadin = DONOR_LEADINS[variant % DONOR_LEADINS.length];
     const timeframeLeadin = pick(TIMEFRAME_LEADINS, variant);
 
     if (v.quote) {
@@ -180,33 +194,19 @@
     if (v.issue) sentences.push(sentenceFrom(v.issue));
     if (v.why) sentences.push(sentenceFrom(v.why));
 
-    if (v.donor || v.partner || v.involvement) {
-      let s = "";
-      if (v.donor || v.partner) {
-        s += "With the support of ";
-        s += v.donor ? v.donor : "our partners";
-        if (v.partner) s += ` and ${v.partner}`;
-        s += ", ";
-        if (variant % 2 === 1 && v.donor) {
-          s = `${donorLeadin(v.donor)}${v.partner ? ` and ${v.partner}` : ""}, `;
-        }
-      }
-      s += v.involvement ? (s ? lower1(v.involvement) : upper1(v.involvement)) : "";
-      s = clean(s) + ".";
-      if (s !== ".") sentences.push(s);
-    }
-
+    if (v.donor) sentences.push(pick(DONOR_CREDIT_TAILS, variant)(v.donor));
+    if (v.partner) sentences.push(pick(PARTNER_PHRASES, variant)(v.partner));
+    if (v.involvement) sentences.push(sentenceFrom(v.involvement));
     if (v.changed) sentences.push(sentenceFrom(v.changed));
 
-    if (v.howmany || v.timeframe || v.results) {
+    if (v.timeframe || v.howmany) {
       let s = "";
       if (v.timeframe) s += `${timeframeLeadin} ${stripLeadingSince(v.timeframe)}, `;
-      if (v.howmany) s += `the program has reached ${v.howmany}`;
-      else s += s ? "the program has grown" : "The program has grown";
-      if (v.results) s += `${v.howmany ? ";" : ","} ${lower1(v.results)}`;
+      s += v.howmany ? `the program has reached ${v.howmany}` : (s ? "the program has grown" : "The program has grown");
       s = clean(s) + ".";
       sentences.push(s);
     }
+    if (v.results) sentences.push(sentenceFrom(v.results));
 
     return joinSentences(sentences);
   }
@@ -536,32 +536,40 @@
     render();
   });
 
-  document.querySelectorAll(".copy-btn").forEach((btn) => {
+  async function copyText(text) {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (e) {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+    }
+  }
+
+  function flashCopied(btn) {
+    const original = btn.textContent;
+    btn.textContent = "Copied";
+    btn.classList.add("copied");
+    setTimeout(() => {
+      btn.textContent = original;
+      btn.classList.remove("copied");
+    }, 1400);
+  }
+
+  document.querySelectorAll(".copy-btn[data-target]").forEach((btn) => {
     btn.addEventListener("click", async () => {
       const targetId = btn.getAttribute("data-target");
       const text = document.getElementById(targetId).textContent;
       if (!text) return;
-      try {
-        await navigator.clipboard.writeText(text);
-      } catch (e) {
-        const ta = document.createElement("textarea");
-        ta.value = text;
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand("copy");
-        document.body.removeChild(ta);
-      }
-      const original = btn.textContent;
-      btn.textContent = "Copied";
-      btn.classList.add("copied");
-      setTimeout(() => {
-        btn.textContent = original;
-        btn.classList.remove("copied");
-      }, 1400);
+      await copyText(text);
+      flashCopied(btn);
     });
   });
 
-  document.querySelectorAll(".regen-btn").forEach((btn) => {
+  document.querySelectorAll(".regen-btn[data-channel]").forEach((btn) => {
     btn.addEventListener("click", () => {
       const channel = btn.getAttribute("data-channel");
       variantIndex[channel] = (variantIndex[channel] + 1) % 3;
@@ -570,4 +578,113 @@
   });
 
   render();
+
+  // ---------- image caption (needs the Claude "sample" runtime capability) ----------
+
+  (async function setupImageCaptioner() {
+    const section = document.getElementById("image-caption-section");
+    const fileInput = document.getElementById("image-input");
+    const statusEl = document.getElementById("image-status");
+    const previewWrap = document.getElementById("image-preview");
+    const previewImg = document.getElementById("image-preview-img");
+    const captionOut = document.getElementById("image-caption-output");
+    const regenBtn = document.getElementById("image-regen-btn");
+    const copyBtn = document.getElementById("image-copy-btn");
+
+    if (!window.claude || typeof window.claude.use !== "function") return;
+
+    let sample;
+    try {
+      sample = await window.claude.use("sample");
+    } catch (e) {
+      sample = null;
+    }
+    if (!sample) return;
+
+    let limits;
+    try {
+      limits = await sample.limits();
+    } catch (e) {
+      return;
+    }
+    if (!limits.images) return;
+
+    section.hidden = false;
+    fileInput.accept = limits.images.mediaTypes.join(",");
+
+    let currentFile = null;
+    let currentController = null;
+
+    function errorCopy(code) {
+      switch (code) {
+        case "not_granted":
+          return "Image captioning needs your permission — choose the image again to allow it.";
+        case "rate_limited":
+          return "Too many requests right now — try again in a moment.";
+        case "image_rejected":
+          return "That image couldn't be used — try a different file.";
+        case "images_unavailable":
+          return "Image captioning isn't available in this view.";
+        case "refused":
+          return "Claude couldn't caption this image — try a different one.";
+        case "cancelled":
+          return "";
+        default:
+          return "Couldn't generate a caption — try again.";
+      }
+    }
+
+    async function runCaption(file, forceFresh) {
+      currentFile = file;
+      previewImg.src = URL.createObjectURL(file);
+      previewWrap.hidden = false;
+      captionOut.textContent = "";
+      copyBtn.hidden = true;
+      regenBtn.hidden = true;
+      statusEl.textContent = "Thinking…";
+
+      if (currentController) currentController.abort();
+      currentController = new AbortController();
+
+      const prompt = "Look at this image and write a short caption for its file name / alt text metadata. "
+        + "Exactly 3 to 4 words. Plain, concrete, descriptive language only — no marketing language, "
+        + "no ending punctuation, no hashtags, no quotation marks. Reply with only the caption, nothing else.";
+
+      try {
+        const { text } = await sample(prompt, {
+          images: file,
+          modelTier: "quick",
+          cache: forceFresh ? false : true,
+          signal: currentController.signal,
+          onText: ({ text }) => {
+            statusEl.textContent = "";
+            captionOut.textContent = text;
+          },
+        });
+        captionOut.textContent = text.trim();
+        statusEl.textContent = "";
+        copyBtn.hidden = false;
+        regenBtn.hidden = false;
+      } catch (e) {
+        statusEl.textContent = errorCopy(e.code);
+        regenBtn.hidden = !currentFile;
+      }
+    }
+
+    fileInput.addEventListener("change", () => {
+      const file = fileInput.files[0];
+      if (file) runCaption(file, false);
+    });
+
+    regenBtn.addEventListener("click", () => {
+      if (currentFile) runCaption(currentFile, true);
+    });
+
+    copyBtn.addEventListener("click", async () => {
+      const text = captionOut.textContent;
+      if (!text) return;
+      await copyText(text);
+      flashCopied(copyBtn);
+    });
+  })();
 })();

@@ -219,8 +219,8 @@
     <div class="channel-card" data-channel="website">
       <div class="channel-head">
         <div>
-          <h3>Website &amp; Insite</h3>
-          <p class="channel-sub">Deep-interest readers, internal staff &middot; long, 5&ndash;8+ sentences, full framework</p>
+          <h3>Website</h3>
+          <p class="channel-sub">Deep-interest readers &middot; long, 5&ndash;8+ sentences, full framework</p>
         </div>
         <div class="channel-actions">
           <button class="regen-btn" data-channel="website" type="button">Regenerate</button>
@@ -244,8 +244,35 @@
 
 </main>
 
+<div class="image-panel-wrap">
+  <section class="panel image-panel" id="image-caption-section" hidden>
+    <div class="panel-head">
+      <h2>3. Image caption</h2>
+    </div>
+    <p class="image-panel-sub">Upload the photo you're posting alongside this story to get a short caption for its file name or alt text &mdash; 3 to 4 words.</p>
+
+    <div class="image-uploader">
+      <label class="upload-btn" for="image-input">Choose image</label>
+      <input type="file" id="image-input" hidden>
+      <span class="image-status" id="image-status"></span>
+    </div>
+
+    <div class="image-preview" id="image-preview" hidden>
+      <img id="image-preview-img" alt="">
+      <div class="image-caption-result">
+        <div class="output-text" id="image-caption-output"></div>
+        <div class="image-caption-actions">
+          <button class="regen-btn" id="image-regen-btn" type="button" hidden>Regenerate</button>
+          <button class="copy-btn" id="image-copy-btn" type="button" hidden>Copy</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
 <footer class="foot">
   <p>Built from an internal Caption Guidelines framework: same 12 questions, three channel lengths, your own words assembled &mdash; not generated from scratch.</p>
+  <p class="foot-credit">Product division by @braincopia</p>
 </footer>
 
 <script src="script.js"></script>
