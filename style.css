@@ -148,7 +148,7 @@ select{cursor:pointer;}
 input[type="text"]:focus, textarea:focus, select:focus{
   outline:none;
   border-color:var(--accent);
-  box-shadow:0 0 0 3px rgba(179,18,46,0.12);
+  box-shadow:0 0 0 3px rgba(0,114,188,0.15);
 }
 
 .section-divider{
@@ -210,7 +210,7 @@ input[type="text"]:focus, textarea:focus, select:focus{
   font-size:0.85rem;
   cursor:pointer;
 }
-.secondary-btn:hover{background:#efece7;}
+.secondary-btn:hover{background:#e8eef2;}
 
 .channel-card{
   border:1px solid var(--line);
