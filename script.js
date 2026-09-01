@@ -827,7 +827,7 @@
     function errorCopy(code) {
       switch (code) {
         case "not_granted":
-          return "Image captioning needs your permission — choose the image again to allow it.";
+          return "Image captioning needs your permission — reload this page to be asked again, then choose your image.";
         case "rate_limited":
           return "Too many requests right now — try again in a moment.";
         case "image_rejected":
