@@ -146,6 +146,16 @@ img, svg, table{max-width:100%;}
   cursor:not-allowed;
 }
 
+.sidebar-slogan{
+  margin:0;
+  font-family:var(--font-serif);
+  font-style:italic;
+  font-size:1.02rem;
+  font-weight:600;
+  color:#c7cdf0;
+  line-height:1.4;
+}
+
 .sidebar-tip{
   background:rgba(255,255,255,0.05);
   border:1px solid var(--sidebar-line);
@@ -167,6 +177,15 @@ img, svg, table{max-width:100%;}
   font-size:0.8rem;
   color:var(--sidebar-muted);
   line-height:1.5;
+}
+
+.sidebar-mission{
+  margin:0;
+  font-size:0.78rem;
+  color:var(--sidebar-muted);
+  line-height:1.55;
+  padding-top:16px;
+  border-top:1px solid var(--sidebar-line);
 }
 
 .sidebar-account{margin-top:auto;padding-top:16px;border-top:1px solid var(--sidebar-line);}
