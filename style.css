@@ -431,10 +431,6 @@ input[type="text"]:focus, textarea:focus, select:focus{
   color:var(--ink-soft);
   font-style:italic;
 }
-#image-caption-output:empty::before{
-  content:"Thinking…";
-}
-
 .meter-row{
   display:flex;
   justify-content:space-between;
@@ -481,30 +477,6 @@ input[type="text"]:focus, textarea:focus, select:focus{
 #scan-list .flag-word{font-weight:600;color:var(--warn);}
 #scan-list .flag-loc{color:var(--ink-soft); font-size:0.8rem;}
 
-.image-panel-wrap{
-  max-width:820px;
-  margin:0 auto;
-  padding:0 24px 28px;
-}
-.image-panel-sub{
-  margin:0 0 16px;
-  font-size:0.86rem;
-  color:var(--ink-soft);
-}
-.image-availability{
-  margin:0;
-  font-size:0.84rem;
-  color:var(--warn);
-  border-left:3px solid var(--warn);
-  padding-left:8px;
-}
-.image-uploader{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  flex-wrap:wrap;
-}
-.image-uploader[hidden]{display:none;}
 .upload-btn{
   display:inline-block;
   background:var(--accent);
@@ -517,37 +489,6 @@ input[type="text"]:focus, textarea:focus, select:focus{
   cursor:pointer;
 }
 .upload-btn:hover{background:var(--accent-dark);}
-.image-status{
-  font-size:0.84rem;
-  color:var(--ink-soft);
-}
-.image-preview{
-  display:flex;
-  align-items:flex-start;
-  gap:18px;
-  margin-top:18px;
-  flex-wrap:wrap;
-}
-.image-preview[hidden]{display:none;}
-.image-preview img{
-  width:180px;
-  height:180px;
-  object-fit:cover;
-  border-radius:8px;
-  border:1px solid var(--line);
-  flex:none;
-}
-.image-caption-result{
-  flex:1;
-  min-width:220px;
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-}
-.image-caption-actions{
-  display:flex;
-  gap:8px;
-}
 
 .foot{
   text-align:center;
