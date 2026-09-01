@@ -81,13 +81,22 @@ body{
   color:var(--ink-soft);
 }
 
-.auth-panel-wrap{
-  max-width:460px;
-  margin:48px auto;
-  padding:0 24px;
+.redeem-panel-wrap{
+  position:fixed;
+  inset:0;
+  background:rgba(20,26,30,0.45);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+  z-index:100;
 }
-.auth-panel-wrap[hidden]{display:none;}
-.auth-panel h2{
+.redeem-panel-wrap[hidden]{display:none;}
+.redeem-panel{
+  max-width:440px;
+  width:100%;
+}
+.redeem-panel h2{
   margin:0 0 6px;
   font-size:1.25rem;
 }
@@ -139,8 +148,6 @@ body{
 }
 .quota-banner[hidden]{display:none;}
 .quota-banner p{margin:0;}
-
-main.layout[hidden]{display:none;}
 
 .layout{
   max-width:1180px;

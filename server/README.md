@@ -1,120 +1,115 @@
-# Caption Generator API
+# Caption Generator — license signing
 
-A small backend for the Caption Generator's paid tier: email/password
-accounts, and usage tracking for the free-tier limit (3 caption
-generations, then a $5/month subscription for unlimited).
+There is no database, no accounts, and no user data stored anywhere in
+this project. This folder is a small, stateless piece of code whose only
+job is: when someone pays, sign them a license key. That's it.
 
-## Stack
+## Why it works this way
 
-Node.js + Express, PostgreSQL via Prisma, bcrypt-hashed passwords, JWT
-session tokens (sent as a `Bearer` header — no cookies, so it works from a
-static frontend hosted on a different origin, including the Claude
-artifact).
+The free tier (3 caption generations) and the paid tier are both enforced
+entirely in the browser:
 
-## Endpoints
+- **Free tier**: a counter in `localStorage`, on the visitor's own device.
+  Nothing about them is ever sent anywhere.
+- **Paid tier**: a license key the browser verifies itself. A key is a
+  signed, expiring token — `base64url(payload) + "." + base64url(signature)`
+  — signed with a private key that only this backend (or you, via the CLI)
+  ever holds. The browser checks the signature against the matching
+  *public* key (safely embedded in `index.html`) using the Web Crypto API.
+  If it checks out and hasn't expired, that device is unlocked — with zero
+  network calls, and nothing stored on any server.
 
-| Method | Path | Auth | What it does |
-|---|---|---|---|
-| POST | `/api/auth/signup` | — | Create an account. Body: `{email, password}` (password ≥ 8 chars). |
-| POST | `/api/auth/login` | — | Log in. Body: `{email, password}`. |
-| GET | `/api/auth/me` | ✓ | Current account's email and subscription state. |
-| GET | `/api/usage/status` | ✓ | Free generations used/remaining, subscription state. |
-| POST | `/api/usage/generate` | ✓ | Call once per "Generate my captions" click. Increments the free-tier counter, or 402s once it's used up and the account isn't subscribed. |
-| POST | `/api/billing/dev-simulate-upgrade` | ✓ | **Dev/test only** — see below. |
-| POST | `/api/billing/webhook` | — | Placeholder for a real payment gateway's webhook. Currently returns 501. |
+This means an org's data (who uses the tool, what they typed, how often)
+never leaves their own browser. The only thing this backend ever touches
+is a payment event and the license key it produces from it — no emails,
+no passwords, no usage history, nothing durable.
 
-## Running locally
+## One-time setup: generate your keypair
 
-Needs a PostgreSQL database.
+```bash
+cd server
+node generate-keys.js
+```
+
+This prints two things:
+- A **private** key (base64-encoded) — set this as `LICENSE_PRIVATE_KEY_B64`
+  wherever you deploy the webhook handler, or in your local `.env` for the
+  CLI. Never commit it, never put it in frontend code.
+- A **public** key (JSON) — paste this into `index.html`'s
+  `CAPTION_LICENSE_PUBLIC_JWK` constant. It's safe to expose: it can verify
+  keys but can't mint them.
+
+`index.html` currently ships with a placeholder test keypair (openly
+documented as such) so the redeem flow works out of the box for trying
+things out. **Generate and swap in your own before accepting real
+payments** — anyone who found the matching private key for the placeholder
+could mint valid license keys.
+
+## Minting a license key
+
+**Manually** (for testing, or for a payment your gateway doesn't send a
+webhook for — a bank transfer, an offline invoice, common enough in this
+sector):
+
+```bash
+node mint-license-cli.js --days 31 --ref someone@org.org
+```
+
+Prints a license key to the console. Send it to whoever paid; they paste
+it into the site's "Have a license key?" box.
+
+**Automatically**, once a payment gateway is chosen: `POST /api/billing/webhook`
+in `src/routes/billing.js` is a stub — it currently just returns 501. Wire
+it up:
+
+1. Verify the gateway's webhook signature against `req.body` (the route
+   already uses `express.raw()` so you get the exact bytes the gateway
+   signed — most signature schemes need that, not a re-serialized copy).
+   **Reject anything that doesn't verify.** Never mint a license from an
+   unverified request.
+2. On a genuine "payment succeeded" event, call
+   `signLicense({ ref: <payer email>, days: 31 })` from `../license` and
+   get the key back to the payer (show it on the gateway's post-payment
+   redirect page, or email it).
+
+No payment gateway is chosen yet — Stripe doesn't operate in Jordan, and
+PayTabs / HyperPay / PayPal Business were the candidates discussed.
+
+## Running the webhook listener locally
+
+Only needed once you're wiring up a real gateway's webhook — not needed
+just to try the license/redeem flow, which works with the CLI alone.
 
 ```bash
 cd server
 cp .env.example .env
-# edit .env: set DATABASE_URL to your local Postgres, and JWT_SECRET to
-# something random (the .env.example comment shows a one-liner for that)
+# edit .env: LICENSE_PRIVATE_KEY_B64 from generate-keys.js
 npm install
-npx prisma migrate deploy   # or: npx prisma migrate dev, if iterating on the schema
 npm run dev
 ```
 
-The API listens on `PORT` (default 4000). Point the frontend at it by
-setting `window.CAPTION_API_BASE` before `script.js` loads (see
-`index.html`), or by editing the default in that same script tag.
+Listens on `PORT` (default 4000).
 
-## Deploying for free, with no expiration date
+## Deploying
 
-Render's own free Postgres tier expires after about 30 days, so the
-database and the API are hosted separately: a free **Neon** Postgres
-database (no time limit — it pauses when idle and wakes back up on the
-next connection, it doesn't get deleted) plus a free **Render** web
-service for the API.
+Free, indefinitely — this holds no data, so there's no database tier to
+expire or pay for. `render.yaml` is a ready-to-use
+[Render](https://render.com) blueprint for a free web service: New →
+Blueprint → point it at this repo. When it asks for
+`LICENSE_PRIVATE_KEY_B64`, paste in the private key from `generate-keys.js`.
 
-**1. Create the database on [neon.tech](https://neon.tech)** (free, no
-card required): sign up, create a project, and copy the connection string
-it gives you (starts with `postgresql://...`).
+Any other Node host works too — set the same env vars from `.env.example`
+and run `npm install && npm start`.
 
-**2. Deploy the API on [Render](https://render.com)**: New → Blueprint →
-point it at this repo. Render reads `render.yaml` and sets up the web
-service; when it asks for `DATABASE_URL` (marked "set during deploy"),
-paste in the Neon connection string from step 1. `JWT_SECRET` is
-generated for you automatically.
+## Security notes
 
-Any other Node host works too (a plain VPS, Fly.io) — just set the same
-environment variables from `.env.example` (using your Neon connection
-string for `DATABASE_URL`) and run
-`npm install && npx prisma migrate deploy && npm start`.
-
-After deploying, update `window.CAPTION_API_BASE` in `index.html` (and in
-the combined single-file build used for the Claude artifact) to your
-backend's real URL, and set `CORS_ORIGIN` on the backend to the exact
-origin(s) the frontend is served from.
-
-## Billing: this is a stub, not a real payment integration
-
-**No payment gateway is wired up.** Stripe doesn't operate in Jordan, and
-a replacement (PayTabs, HyperPay, and PayPal Business were the candidates
-discussed) hasn't been chosen yet. `POST /api/billing/dev-simulate-upgrade`
-exists only so the free-tier limit and the rest of the account flow could
-be built and tested end-to-end before that decision is made — it marks the
-calling account as subscribed with **no payment of any kind**.
-
-That route is disabled unless the `ALLOW_DEV_BILLING_STUB` environment
-variable is exactly `"true"`. **Leave it unset (or `"false"`) in any real
-deployment** — anyone who can call the route while it's enabled gets a free
-subscription. The frontend's "Upgrade" button already handles both cases
-honestly: with the stub enabled it shows a dialog explicitly saying no real
-payment was made; with it disabled (the default) it tells the viewer that
-online upgrades aren't set up yet, rather than pretending to charge them.
-
-### Wiring in a real gateway later
-
-Once a gateway is chosen:
-
-1. Replace `dev-simulate-upgrade` with that gateway's real checkout flow
-   (a hosted payment page or their JS SDK), and remove the stub route
-   entirely.
-2. Implement `POST /api/billing/webhook` for real: verify the gateway's
-   signature on every request, then set `isSubscribed` /
-   `subscriptionExpires` on the `User` row from the subscription-created /
-   renewed / cancelled / payment-failed events it sends — don't rely on the
-   client telling you payment succeeded.
-3. Store whatever the gateway needs to manage the subscription later (a
-   customer ID, a subscription ID) as new columns on `User` via a Prisma
-   migration.
-4. Keep secrets (API keys, webhook signing secret) in environment
-   variables only — never commit them, never send them to the frontend.
-
-## Security notes (minimal-scope tradeoffs)
-
-This is intentionally minimal, matching what was asked for. Before this
-handles real money or real user data at scale, consider:
-
-- **Rate limiting** login and signup (currently unlimited attempts).
-- **Email verification and password reset** (currently neither exists —
-  losing your password means losing the account).
-- **httpOnly cookies instead of a bearer token in `localStorage`** for
-  session storage, which is more resistant to XSS token theft (this needs
-  `SameSite=None; Secure` cookies and `credentials: true` CORS since the
-  frontend and backend are on different origins).
-- A managed auth provider (Auth0, Clerk, Supabase Auth) if you'd rather not
-  maintain password hashing and session handling yourselves.
+- Treat `LICENSE_PRIVATE_KEY_B64` like any other secret: environment
+  variable only, never committed, never logged.
+- The webhook route must verify the gateway's signature before minting
+  anything — an unverified `POST` to that endpoint should never be able to
+  produce a valid license.
+- A license key, once issued, is valid until it expires — there's no way
+  to revoke one early without also rotating the keypair (which invalidates
+  every key issued so far, including ones people are still using). Keep
+  expiry windows short (a month, matching the billing period) rather than
+  issuing long-lived keys, so a leaked or disputed key ages out on its own.

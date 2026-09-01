@@ -87,46 +87,52 @@ phrasing (different connecting words and transitions) while keeping every
 fact in the same order the guidelines specify — a quick way to see a few
 options and pick the one that reads best, without changing any content.
 
-## Accounts & billing
+## Free tier & paid unlock — no accounts, no database
 
-Using the generator now requires an account: 3 free caption generations
-(clicking **Generate my captions**), then a $5/month subscription for
-unlimited use. This needs the small backend in `server/` — see
-`server/README.md` for how to run it locally and deploy it. Point the
-frontend at your deployed backend by editing `window.CAPTION_API_BASE`
-near the bottom of `index.html`.
+3 caption generations are free (each **Generate my captions** click),
+tracked locally in the browser — no signup, no login, nothing sent
+anywhere. After that, unlocking unlimited use costs $5/month and works via
+a **license key**: a signed, expiring token that the browser verifies
+entirely on its own (cryptographic signature check via the Web Crypto
+API), with no server call and no data about the user ever transmitted.
 
-**No payment gateway is wired up yet** (Stripe doesn't operate in Jordan,
-and a replacement hasn't been chosen — PayTabs, HyperPay, and PayPal
-Business were the candidates discussed). The "Upgrade" button is honest
-about this: it either simulates an upgrade with an explicit "no real
-payment was made" notice (only when the backend operator has turned on a
-dev/test flag) or tells the viewer upgrades aren't available yet. See
-`server/README.md` for how to wire in a real gateway once one is chosen.
+This was a deliberate choice over a conventional accounts+database
+backend: for a tool aimed at the humanitarian sector, not holding a
+database of who uses it — no emails, no passwords, no usage history — is
+worth more than the convenience of syncing free-tier usage across a
+person's devices. See `server/README.md` for exactly how a license key
+gets minted (there's still a tiny stateless bit of server code for that
+one step — signing a key when someone pays — but it stores nothing).
 
 Regenerating a caption's phrasing (the **Regenerate** button) doesn't use
 up a free generation — only the initial **Generate my captions** click per
 story does.
 
-**This only works on the deployed static site, not inside the Claude
-artifact preview** — a published artifact's sandbox blocks outbound
-requests to a custom backend like this one, so the artifact link stays a
-no-login demo of the caption logic itself; the accounts/paywall flow needs
-the real site (e.g. hosted on GitHub Pages) talking to your deployed
-`server/` API.
+**No payment gateway is wired up yet** (Stripe doesn't operate in Jordan,
+and a replacement hasn't been chosen — PayTabs, HyperPay, and PayPal
+Business were the candidates discussed). The "Upgrade" button links to
+`window.CAPTION_UPGRADE_URL` in `index.html` — set that once you have a
+real checkout page; until then it tells the viewer upgrades aren't set up
+yet rather than pretending to. Already have a license key from a manual
+sale (bank transfer, an offline invoice)? Use "Have a license key?" to
+redeem it directly.
+
+Because verification is pure client-side crypto with no network call,
+this works the same everywhere the page runs — the deployed static site,
+GitHub Pages, or the Claude artifact link.
 
 ## Using it
 
 Open `index.html` in a browser (or serve the folder with any static file
-server) with the backend running and reachable. Sign up, then fill in the
-boxes on the left and click **Generate my captions** to populate the three
-captions on the right. As you start typing in the story boxes (issue,
-involvement, changed, why, quote), a row of clickable example phrasings
-appears underneath to help if you're stuck — click one to drop it into the
-box. Each caption has a **Copy** button and a live sentence counter against
-the channel's target length. Two optional boxes — **project phase** and
+server) — no backend needed for normal use. Fill in the boxes on the left
+and click **Generate my captions** to populate the three captions on the
+right. As you start typing in the story boxes (issue, involvement,
+changed, why, quote), a row of clickable example phrasings appears
+underneath to help if you're stuck — click one to drop it into the box.
+Each caption has a **Copy** button and a live sentence counter against the
+channel's target length. Two optional boxes — **project phase** and
 **website link** — strengthen the LinkedIn caption specifically, per the
 guidelines' note to add project phase and a link back to the full story.
 
-The frontend itself is still a plain static file (no build step) — the
-account system is the only part that needs a server.
+No build step, no dependencies, no data leaves the browser during normal
+use — `server/` only comes into play at the moment someone actually pays.
