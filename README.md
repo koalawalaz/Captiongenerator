@@ -55,9 +55,10 @@ the top of their target range.
 ## Mentions, hashtags & programme tagging
 
 Optional boxes under **Mentions & tags** let you add real social handles for
-your organization, the donor, and the partner (e.g. `@drc_ngo`, `@EU_ECHO`).
-Handles are only ever used to build the `@mention` line exactly as typed —
-nothing is guessed, since an invented handle could tag the wrong account.
+your organization, the donor, and the partner (e.g. `@yourorg_ngo`,
+`@GRF_official`). Handles are only ever used to build the `@mention` line
+exactly as typed — nothing is guessed, since an invented handle could tag
+the wrong account.
 
 Hashtags are generated automatically and appended under each caption, built
 from (in order): the selected **Programme** (see below), the organization/
