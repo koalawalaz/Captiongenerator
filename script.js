@@ -1290,6 +1290,15 @@
   const outputEyebrow = document.getElementById("output-eyebrow");
   const outputTitle = document.getElementById("output-title");
 
+  const modeToggleThumb = document.getElementById("mode-toggle-thumb");
+
+  function positionModeThumb() {
+    const activeBtn = document.querySelector(".mode-toggle-btn.active");
+    if (!activeBtn || !modeToggleThumb) return;
+    modeToggleThumb.style.width = `${activeBtn.offsetWidth}px`;
+    modeToggleThumb.style.transform = `translateX(${activeBtn.offsetLeft - 4}px)`;
+  }
+
   function setAppMode(mode) {
     appMode = mode;
     const isFullStory = mode === "fullstory";
@@ -1298,6 +1307,7 @@
       btn.classList.toggle("active", active);
       btn.setAttribute("aria-selected", active ? "true" : "false");
     });
+    positionModeThumb();
     fullstoryFields.hidden = !isFullStory;
     captionsControls.hidden = isFullStory;
     captionsOutput.hidden = isFullStory;
@@ -1313,6 +1323,70 @@
 
   modeToggleButtons.forEach((btn) => {
     btn.addEventListener("click", () => setAppMode(btn.getAttribute("data-app-mode")));
+  });
+
+  // ---------- Dashboard <-> Workspace navigation ----------
+
+  const dashboardView = document.getElementById("dashboard-view");
+  const workspaceView = document.getElementById("workspace-view");
+
+  function switchView(fromEl, toEl) {
+    toEl.hidden = false;
+    toEl.classList.add("view-entering");
+    void toEl.offsetWidth; // force reflow so the entering state is committed before removal
+    toEl.classList.remove("view-entering");
+    fromEl.hidden = true;
+  }
+
+  function showDashboard() {
+    switchView(workspaceView, dashboardView);
+    refreshContinueDraftCard();
+  }
+
+  function showWorkspace(startMode) {
+    switchView(dashboardView, workspaceView);
+    if (startMode) setAppMode(startMode);
+    positionModeThumb();
+  }
+
+  function refreshContinueDraftCard() {
+    const card = document.getElementById("card-continue-draft");
+    const titleEl = document.getElementById("continue-draft-title");
+    let stored;
+    try {
+      stored = localStorage.getItem(DRAFT_KEY);
+    } catch (e) {
+      stored = null;
+    }
+    if (!stored) { card.hidden = true; return; }
+    let draft;
+    try {
+      draft = JSON.parse(stored);
+    } catch (e) {
+      card.hidden = true;
+      return;
+    }
+    // Only the core narrative fields count — tone/audience/timeframe-mode
+    // etc. always carry a non-empty default value even on an untouched
+    // form, so checking every draft key would show this card for a
+    // visitor who never typed anything.
+    const hasContent = SHAPE_FIELD_IDS.some((id) => typeof draft[id] === "string" && draft[id].trim());
+    if (!hasContent) { card.hidden = true; return; }
+    card.hidden = false;
+    titleEl.textContent = draft.who ? `${firstName(draft.who)}'s story` : "Untitled field story";
+  }
+
+  document.getElementById("logo-home-btn").addEventListener("click", showDashboard);
+  document.getElementById("card-new-caption").addEventListener("click", () => {
+    document.getElementById("clear-btn").click();
+    showWorkspace("captions");
+  });
+  document.getElementById("card-new-fullstory").addEventListener("click", () => {
+    document.getElementById("clear-btn").click();
+    showWorkspace("fullstory");
+  });
+  document.getElementById("card-continue-draft").addEventListener("click", () => {
+    showWorkspace();
   });
 
   function clearFullStoryOutput() {
@@ -1653,5 +1727,6 @@
   loadDraft();
   updateShapeRing();
   updateStoryTitle();
+  refreshContinueDraftCard();
 
 })();

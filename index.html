@@ -4,40 +4,46 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Caption Generator</title>
-<link rel="stylesheet" href="style.css?v=20260902b">
+<link rel="stylesheet" href="style.css?v=20260902c">
 </head>
 <body>
 
 <div class="app-shell">
 
-  <aside class="sidebar">
-    <div class="sidebar-top">
-      <div class="brand">
-        <svg class="brand-icon" viewBox="0 0 74 60" aria-hidden="true">
-          <defs>
-            <pattern id="brand-halftone" width="5" height="5" patternUnits="userSpaceOnUse">
-              <circle cx="2.5" cy="2.5" r="1" fill="currentColor"/>
-            </pattern>
-          </defs>
-          <path d="M14 42h30l6 8v-8h4a5 5 0 0 0 5-5V15a5 5 0 0 0-5-5H14a5 5 0 0 0-5 5v22a5 5 0 0 0 5 5z"
-                fill="url(#brand-halftone)" opacity="0.55"/>
-          <path d="M9 4h40a7 7 0 0 1 7 7v16a7 7 0 0 1-7 7H27l-12 11 2-11H9a7 7 0 0 1-7-7V11a7 7 0 0 1 7-7z"
-                fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"
-                opacity="0.5" transform="translate(1.3,1.1) rotate(0.6 30 24)"/>
-          <path d="M8 3h40a7 7 0 0 1 7 7v16a7 7 0 0 1-7 7H26l-11 11 2-11H8a7 7 0 0 1-7-7V10a7 7 0 0 1 7-7z"
-                fill="#fff" stroke="currentColor" stroke-width="2.8" stroke-linejoin="round" stroke-linecap="round"/>
-        </svg>
-        <p class="brand-word">
-          <span class="brand-bold">Caption</span>
-          <span class="brand-light">Generator</span>
-        </p>
-      </div>
-      <p class="brand-tagline">Field notes &rarr; words</p>
+  <header class="topbar-slim">
+    <button class="brand-btn" id="logo-home-btn" type="button" title="Back to home">
+      <svg class="brand-icon" viewBox="0 0 74 60" aria-hidden="true">
+        <defs>
+          <pattern id="brand-halftone" width="5" height="5" patternUnits="userSpaceOnUse">
+            <circle cx="2.5" cy="2.5" r="1" fill="currentColor"/>
+          </pattern>
+        </defs>
+        <path d="M14 42h30l6 8v-8h4a5 5 0 0 0 5-5V15a5 5 0 0 0-5-5H14a5 5 0 0 0-5 5v22a5 5 0 0 0 5 5z"
+              fill="url(#brand-halftone)" opacity="0.55"/>
+        <path d="M9 4h40a7 7 0 0 1 7 7v16a7 7 0 0 1-7 7H27l-12 11 2-11H9a7 7 0 0 1-7-7V11a7 7 0 0 1 7-7z"
+              fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"
+              opacity="0.5" transform="translate(1.3,1.1) rotate(0.6 30 24)"/>
+        <path d="M8 3h40a7 7 0 0 1 7 7v16a7 7 0 0 1-7 7H26l-11 11 2-11H8a7 7 0 0 1-7-7V10a7 7 0 0 1 7-7z"
+              fill="#fff" stroke="currentColor" stroke-width="2.8" stroke-linejoin="round" stroke-linecap="round"/>
+      </svg>
+      <span class="brand-word">
+        <span class="brand-bold">Caption</span>
+        <span class="brand-light">Generator</span>
+      </span>
+    </button>
+    <div class="topbar-slim-right">
+      <span class="account-status" id="account-status"></span>
+      <button class="link-btn topbar-link" id="upgrade-link-btn" type="button">Upgrade &mdash; $5/month</button>
+      <button class="link-btn topbar-link" id="redeem-link-btn" type="button">Have a license key?</button>
     </div>
+  </header>
 
-    <p class="sidebar-slogan">This tool respects your voice.</p>
+  <div class="app-body">
 
-    <div class="sidebar-tip">
+  <main class="dashboard-view view active" id="dashboard-view">
+    <p class="dashboard-slogan">This tool respects your voice.</p>
+
+    <div class="dashboard-tip">
       <p class="tip-head">
         <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.5a5.5 5.5 0 0 0-3 10.1c.5.4.8 1 .8 1.6v.3h4.4v-.3c0-.6.3-1.2.8-1.6A5.5 5.5 0 0 0 10 2.5z" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M8.2 17h3.6M8.7 15h2.6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
         A small reminder
@@ -45,18 +51,34 @@
       <p class="tip-body">The strongest caption usually starts with one person and one specific detail.</p>
     </div>
 
-    <p class="sidebar-mission">A tool for humanitarian contexts: NGOs, INGOs, donors, partners, and initiatives, etc. Turn your field notes into platform-ready captions in your own voice &mdash; no hype, no AI copy. And always, keeping people at the centre.</p>
+    <p class="dashboard-mission">A tool for humanitarian contexts: NGOs, INGOs, donors, partners, and initiatives, etc. Turn your field notes into platform-ready captions in your own voice &mdash; no hype, no AI copy. And always, keeping people at the centre.</p>
 
-    <div class="sidebar-account" id="account-bar">
-      <p class="nav-label">Caption studio</p>
-      <p class="sidebar-sub">For people doing the work.</p>
-      <p class="account-status" id="account-status"></p>
-      <button class="link-btn sidebar-link" id="upgrade-link-btn" type="button">Upgrade &mdash; $5/month</button>
-      <button class="link-btn sidebar-link" id="redeem-link-btn" type="button">Have a license key?</button>
+    <h1 class="dashboard-title">What are we writing today?</h1>
+
+    <div class="dashboard-cards">
+      <button class="dashboard-card" id="card-new-caption" type="button">
+        <span class="dashboard-card-icon dashboard-card-icon-accent">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 4h9l3 3v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+        </span>
+        <span class="dashboard-card-title">New caption</span>
+        <span class="dashboard-card-sub">Three short captions &mdash; Instagram &amp; Facebook, LinkedIn, and a Website blurb.</span>
+      </button>
+      <button class="dashboard-card" id="card-new-fullstory" type="button">
+        <span class="dashboard-card-icon dashboard-card-icon-dark">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 3h10a1 1 0 0 1 1 1v13l-3-2-3 2-3-2-3 2V4a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+        </span>
+        <span class="dashboard-card-title">New Full Story</span>
+        <span class="dashboard-card-sub">One long-form, structured story &mdash; headline, dek, quotes, and a closing.</span>
+      </button>
+      <button class="dashboard-card dashboard-card-draft" id="card-continue-draft" type="button" hidden>
+        <span class="dashboard-card-eyebrow">Continue draft</span>
+        <span class="dashboard-card-title" id="continue-draft-title">Untitled field story</span>
+        <span class="dashboard-card-sub" id="continue-draft-sub">Autosaved locally</span>
+      </button>
     </div>
-  </aside>
+  </main>
 
-  <div class="main-col">
+  <div class="workspace-view view" id="workspace-view" hidden>
 
     <div class="topbar">
       <p class="breadcrumb"><span>Writing desk</span><span class="crumb-arrow">&rarr;</span><span id="story-title">Untitled field story</span></p>
@@ -69,6 +91,7 @@
     <main class="workspace" id="app-main">
 
       <div class="mode-toggle" role="tablist">
+        <div class="mode-toggle-thumb" id="mode-toggle-thumb"></div>
         <button class="mode-toggle-btn active" data-app-mode="captions" type="button" role="tab" aria-selected="true">Captions</button>
         <button class="mode-toggle-btn" data-app-mode="fullstory" type="button" role="tab" aria-selected="false">Full Story</button>
       </div>
@@ -525,12 +548,14 @@
 
       </div>
     </main>
-
-    <footer class="foot">
-      <p>Built on the Caption Guidelines framework: the same 12 questions, three channel lengths, your own words assembled &mdash; not AI-generated from scratch.</p>
-      <p class="foot-credit">Product division by @braincopia</p>
-    </footer>
   </div>
+
+  </div>
+
+  <footer class="foot">
+    <p>Built on the Caption Guidelines framework: the same 12 questions, three channel lengths, your own words assembled &mdash; not AI-generated from scratch.</p>
+    <p class="foot-credit">Product division by @braincopia</p>
+  </footer>
 </div>
 
 <div class="redeem-panel-wrap" id="redeem-panel-wrap" hidden>
@@ -565,6 +590,6 @@
     "y": "daJuKnjCmA25zB6JpzfYuHTs3JPyrh4X3omAUWeM9RQ"
   };
 </script>
-<script src="script.js?v=20260902b"></script>
+<script src="script.js?v=20260902c"></script>
 </body>
 </html>
