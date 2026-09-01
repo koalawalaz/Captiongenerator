@@ -683,23 +683,24 @@ input[type="text"]:focus, textarea:focus, select:focus{
 }
 .meter-row{
   display:flex;
-  justify-content:space-between;
   align-items:center;
-  margin-top:8px;
+  margin-top:10px;
   font-size:0.78rem;
   color:var(--ink-soft);
   flex-wrap:wrap;
-  gap:8px;
+  gap:12px;
+  justify-content:flex-start;
 }
-.meter{font-weight:600;}
+.meter{font-weight:600; white-space:nowrap;}
 .meter.ok{color:var(--ok);}
 .meter.warn{color:var(--warn);}
+.meter-target{white-space:nowrap; flex:0 0 auto;}
 .meter-feedback{
   font-weight:500;
   color:var(--accent-text);
   font-size:0.8rem;
-  min-height:1.2em;
-  display:inline-block;
+  white-space:nowrap;
+  flex:0 0 auto;
 }
 
 .photo-reminder{
@@ -862,8 +863,9 @@ input[type="text"]:focus, textarea:focus, select:focus{
   .workspace-sub{font-size:0.9rem;}
   .field-row{grid-template-columns:1fr;}
   .channel-card{padding:14px 16px;}
-  .meter-row{font-size:0.75rem; gap:4px;}
-  .meter-feedback{font-size:0.75rem;}
+  .meter-row{font-size:0.73rem; gap:6px; margin-top:8px;}
+  .meter-feedback{font-size:0.73rem;}
+  .meter-target{font-size:0.73rem;}
 }
 
 /* ---------- dark mode ---------- */
