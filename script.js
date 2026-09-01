@@ -5,7 +5,8 @@
     "who", "where", "issue", "involvement", "changed", "why", "quote",
     "howmany", "timeframe", "results", "donor", "partner",
     "donorHandle", "partnerHandle", "orgHandle", "programme",
-    "phase", "link", "tone"
+    "phase", "link", "tone",
+    "timeframeMode", "timeframeDate", "timeframeNumber", "timeframeUnit"
   ];
   const fields = {};
   ids.forEach((id) => { fields[id] = document.getElementById(id); });
@@ -658,6 +659,8 @@
     ids.forEach((id) => { if (id !== "programme") fields[id].value = ""; });
     familySelect.value = "";
     populateProgrammeTypes("");
+    fields.timeframeUnit.value = "months";
+    setTimeframeMode("date");
     variantIndex.meta = 0;
     variantIndex.linkedin = 0;
     variantIndex.website = 0;
@@ -1031,6 +1034,74 @@
     populateProgrammeTypes(family, value);
   }
 
+  // ---------- timeframe: calendar date or duration picker ----------
+  //
+  // The 9 · Timeframe box is either a calendar date (native date picker)
+  // or a plain number + unit (days/months/years). Whichever mode is
+  // active gets turned into the same kind of short phrase the caption
+  // builders already expect (e.g. "January 2026" or "8 months ago"),
+  // written into the hidden #timeframe field so nothing downstream
+  // (builders, shape counter, autosave) needs to know about the picker.
+
+  const MONTH_NAMES = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+  const timeframeModeButtons = document.querySelectorAll(".timeframe-mode-btn[data-mode]");
+  const timeframePanels = document.querySelectorAll(".timeframe-panel[data-timeframe-panel]");
+
+  function setTimeframeMode(mode) {
+    fields.timeframeMode.value = mode;
+    timeframeModeButtons.forEach((btn) => {
+      const active = btn.getAttribute("data-mode") === mode;
+      btn.classList.toggle("active", active);
+      btn.setAttribute("aria-selected", active ? "true" : "false");
+    });
+    timeframePanels.forEach((panel) => {
+      panel.hidden = panel.getAttribute("data-timeframe-panel") !== mode;
+    });
+  }
+
+  function formatTimeframeDate(dateStr) {
+    if (!dateStr) return "";
+    const d = new Date(dateStr + "T00:00:00");
+    if (isNaN(d.getTime())) return "";
+    return `${MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}`;
+  }
+
+  function formatTimeframeDuration(numStr, unit) {
+    const n = parseInt(numStr, 10);
+    if (!n || n < 1) return "";
+    const labels = {
+      days: n === 1 ? "day" : "days",
+      months: n === 1 ? "month" : "months",
+      years: n === 1 ? "year" : "years",
+    };
+    return `${n} ${labels[unit] || labels.months} ago`;
+  }
+
+  function updateTimeframeValue() {
+    const mode = fields.timeframeMode.value || "date";
+    const computed = mode === "duration"
+      ? formatTimeframeDuration(fields.timeframeNumber.value, fields.timeframeUnit.value)
+      : formatTimeframeDate(fields.timeframeDate.value);
+    if (fields.timeframe.value !== computed) {
+      fields.timeframe.value = computed;
+      fields.timeframe.dispatchEvent(new Event("input"));
+    }
+  }
+
+  timeframeModeButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      setTimeframeMode(btn.getAttribute("data-mode"));
+      updateTimeframeValue();
+      scheduleDraftSave();
+    });
+  });
+  fields.timeframeDate.addEventListener("input", updateTimeframeValue);
+  fields.timeframeNumber.addEventListener("input", updateTimeframeValue);
+  fields.timeframeUnit.addEventListener("change", updateTimeframeValue);
+
   // ---------- autosave draft to localStorage ----------
   //
   // Only ever written to this browser's own storage — nothing leaves the
@@ -1080,6 +1151,7 @@
       if (typeof draft[id] === "string" && fields[id]) fields[id].value = draft[id];
     });
     if (draft.programme) restoreProgrammeSelection(draft.programme);
+    setTimeframeMode(draft.timeframeMode || "date");
   }
 
   ids.forEach((id) => {

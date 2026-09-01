@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Caption Generator</title>
-<link rel="stylesheet" href="style.css?v=20260901d">
+<link rel="stylesheet" href="style.css?v=20260901e">
 </head>
 <body>
 
@@ -158,7 +158,25 @@
               </div>
               <div class="field">
                 <label for="timeframe">9 &middot; Timeframe</label>
-                <input type="text" id="timeframe" placeholder="e.g. since January 2026, over 14 months">
+                <div class="timeframe-mode-toggle" role="tablist">
+                  <button type="button" class="timeframe-mode-btn active" data-mode="date" role="tab" aria-selected="true">Calendar date</button>
+                  <button type="button" class="timeframe-mode-btn" data-mode="duration" role="tab" aria-selected="false">Duration</button>
+                </div>
+                <div class="timeframe-panel" data-timeframe-panel="date">
+                  <input type="date" id="timeframeDate">
+                </div>
+                <div class="timeframe-panel" data-timeframe-panel="duration" hidden>
+                  <div class="timeframe-duration-row">
+                    <input type="number" id="timeframeNumber" min="1" placeholder="e.g. 14">
+                    <select id="timeframeUnit">
+                      <option value="days">Days</option>
+                      <option value="months" selected>Months</option>
+                      <option value="years">Years</option>
+                    </select>
+                  </div>
+                </div>
+                <input type="hidden" id="timeframe">
+                <input type="hidden" id="timeframeMode" value="date">
               </div>
             </div>
             <div class="field">
@@ -399,6 +417,6 @@
     "y": "daJuKnjCmA25zB6JpzfYuHTs3JPyrh4X3omAUWeM9RQ"
   };
 </script>
-<script src="script.js?v=20260901d"></script>
+<script src="script.js?v=20260901e"></script>
 </body>
 </html>

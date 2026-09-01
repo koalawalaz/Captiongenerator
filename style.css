@@ -479,6 +479,38 @@ select{cursor:pointer;}
   color:var(--ink-soft);
 }
 
+.timeframe-mode-toggle{
+  display:flex;
+  gap:6px;
+  margin-bottom:8px;
+}
+.timeframe-mode-btn{
+  flex:1;
+  background:var(--ground);
+  border:1px solid var(--line);
+  border-radius:6px;
+  padding:6px 8px;
+  font-size:0.78rem;
+  font-family:inherit;
+  color:var(--ink-soft);
+  cursor:pointer;
+}
+.timeframe-mode-btn.active{
+  background:var(--accent);
+  border-color:var(--accent);
+  color:#fff;
+}
+.timeframe-panel[hidden]{display:none;}
+.timeframe-duration-row{
+  display:grid;
+  grid-template-columns:1fr 92px;
+  gap:8px;
+}
+.timeframe-duration-row select{
+  padding-left:6px;
+  padding-right:6px;
+}
+
 input[type="text"]:focus, textarea:focus, select:focus{
   outline:none;
   border-color:var(--accent-text);
