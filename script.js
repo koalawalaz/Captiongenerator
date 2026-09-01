@@ -3,7 +3,9 @@
 
   const ids = [
     "who", "where", "issue", "involvement", "changed", "why", "quote",
-    "howmany", "timeframe", "results", "donor", "partner", "phase", "link"
+    "howmany", "timeframe", "results", "donor", "partner",
+    "donorHandle", "partnerHandle", "orgHandle", "programme",
+    "phase", "link"
   ];
   const fields = {};
   ids.forEach((id) => { fields[id] = document.getElementById(id); });
@@ -21,6 +23,8 @@
   const photoReminder = document.getElementById("photo-reminder");
   const scanCard = document.getElementById("scan-card");
   const scanList = document.getElementById("scan-list");
+
+  const variantIndex = { meta: 0, linkedin: 0, website: 0 };
 
   // ---------- text helpers ----------
 
@@ -63,17 +67,45 @@
     const matches = text.match(/[.!?]+(?=\s|$)/g);
     return matches ? matches.length : (text.trim() ? 1 : 0);
   }
+  function pick(bank, variant) {
+    return bank[variant % bank.length];
+  }
+
+  // ---------- phrasing variants (for "Regenerate") ----------
+
+  const WHERE_LEADINS = [
+    (w) => `from ${w}`,
+    (w) => `based in ${w}`,
+    (w) => `in ${w}`,
+  ];
+  const DONOR_LEADINS = [
+    (d) => `With the support of ${d}`,
+    (d) => `Thanks to ${d}`,
+    (d) => `With ${d}'s support`,
+  ];
+  const NOW_WORDS = ["now", "today", "since then"];
+  const TIMEFRAME_LEADINS = ["Since", "As of", "Starting"];
+  const LINK_LEADINS = [
+    "Read the full story on our website:",
+    "Full story on our website:",
+    "See the full story at",
+  ];
 
   // ---------- caption builders ----------
 
   function val(id) {
-    return clean(fields[id].value);
+    const el = fields[id];
+    if (!el) return "";
+    return clean(el.value);
   }
 
-  function buildMeta(v) {
+  function buildMeta(v, variant) {
     const sentences = [];
+    const whereLeadin = WHERE_LEADINS[variant % WHERE_LEADINS.length];
+    const donorLeadin = DONOR_LEADINS[variant % DONOR_LEADINS.length];
+    const nowWord = NOW_WORDS[variant % NOW_WORDS.length];
 
-    if (v.who && v.where) sentences.push(`${upper1(v.who)}, from ${v.where}.`);
+    if (v.who && v.where) sentences.push(`${upper1(v.who)}, ${whereLeadin(v.where)}.`);
     else if (v.who) sentences.push(`${upper1(v.who)}.`);
     else if (v.where) sentences.push(`${upper1(v.where)}.`);
 
@@ -81,10 +113,10 @@
 
     if (v.involvement || v.changed) {
       let s = "";
-      if (v.donor) s += `With the support of ${v.donor}, `;
+      if (v.donor) s += `${donorLeadin(v.donor)}, `;
       if (v.involvement) s += v.donor ? lower1(v.involvement) : upper1(v.involvement);
       if (v.changed) {
-        s += s ? ", and now " : (v.donor ? `With the support of ${v.donor}, now ` : "Now ");
+        s += s ? `, and ${nowWord} ` : (v.donor ? `${donorLeadin(v.donor)}, ${nowWord} ` : `${upper1(nowWord)} `);
         s += lower1(v.changed);
       }
       s = clean(s) + ".";
@@ -94,11 +126,14 @@
     return joinSentences(sentences);
   }
 
-  function buildLinkedin(v) {
+  function buildLinkedin(v, variant) {
     const sentences = [];
+    const timeframeLeadin = pick(TIMEFRAME_LEADINS, variant);
+    const donorLeadin = DONOR_LEADINS[variant % DONOR_LEADINS.length];
+    const linkLeadin = pick(LINK_LEADINS, variant);
 
     let s1 = "";
-    if (v.timeframe) s1 += `Since ${stripLeadingSince(v.timeframe)}, `;
+    if (v.timeframe) s1 += `${timeframeLeadin} ${stripLeadingSince(v.timeframe)}, `;
     if (v.where) s1 += `our team in ${v.where} `;
     else s1 += s1 ? "our team " : "Our team ";
     if (v.howmany) s1 += `has reached ${v.howmany}`;
@@ -110,7 +145,7 @@
     if (v.donor || v.changed) {
       let s2 = "";
       if (v.donor) {
-        s2 += `With the support of ${v.donor}`;
+        s2 += donorLeadin(v.donor);
         if (v.partner) s2 += ` and ${v.partner}`;
         s2 += ", ";
       }
@@ -121,13 +156,16 @@
 
     if (v.why) sentences.push(sentenceFrom(v.why));
     if (v.phase) sentences.push(sentenceFrom(v.phase));
-    if (v.link) sentences.push(`Read the full story on our website: ${v.link}.`);
+    if (v.link) sentences.push(`${linkLeadin} ${v.link}.`);
 
     return joinSentences(sentences);
   }
 
-  function buildWebsite(v) {
+  function buildWebsite(v, variant) {
     const sentences = [];
+    const whereLeadin = WHERE_LEADINS[variant % WHERE_LEADINS.length];
+    const donorLeadin = DONOR_LEADINS[variant % DONOR_LEADINS.length];
+    const timeframeLeadin = pick(TIMEFRAME_LEADINS, variant);
 
     if (v.quote) {
       const q = upper1(stripQuotes(v.quote));
@@ -135,7 +173,7 @@
       sentences.push(`“${q}” — ${name}.`);
     }
 
-    if (v.who && v.where) sentences.push(`${upper1(v.who)}, from ${v.where}.`);
+    if (v.who && v.where) sentences.push(`${upper1(v.who)}, ${whereLeadin(v.where)}.`);
     else if (v.who) sentences.push(`${upper1(v.who)}.`);
     else if (v.where) sentences.push(`${upper1(v.where)}.`);
 
@@ -149,6 +187,9 @@
         s += v.donor ? v.donor : "our partners";
         if (v.partner) s += ` and ${v.partner}`;
         s += ", ";
+        if (variant % 2 === 1 && v.donor) {
+          s = `${donorLeadin(v.donor)}${v.partner ? ` and ${v.partner}` : ""}, `;
+        }
       }
       s += v.involvement ? (s ? lower1(v.involvement) : upper1(v.involvement)) : "";
       s = clean(s) + ".";
@@ -159,7 +200,7 @@
 
     if (v.howmany || v.timeframe || v.results) {
       let s = "";
-      if (v.timeframe) s += `${upper1(v.timeframe)}, `;
+      if (v.timeframe) s += `${timeframeLeadin} ${stripLeadingSince(v.timeframe)}, `;
       if (v.howmany) s += `the program has reached ${v.howmany}`;
       else s += s ? "the program has grown" : "The program has grown";
       if (v.results) s += `${v.howmany ? ";" : ","} ${lower1(v.results)}`;
@@ -168,6 +209,138 @@
     }
 
     return joinSentences(sentences);
+  }
+
+  // ---------- programme -> hashtag map ----------
+
+  const PROGRAM_HASHTAGS = {
+    pim: ["PIM"],
+    cp: ["ChildProtection"],
+    cbp: ["CommunityBasedProtection"],
+    gbv: ["GBV"],
+    legal: ["LegalAid"],
+    mhpss: ["MHPSS"],
+    protcoord: ["ProtectionCoordination"],
+    food: ["FoodSecurity"],
+    finclusion: ["FinancialInclusion"],
+    livelihoods: ["DecentLivelihoods"],
+    eore: ["EORE"],
+    landrelease_nts: ["LandRelease"],
+    landrelease_clearance: ["EOD"],
+    victimassist: ["VictimAssistance"],
+    peacebuilding: ["Peacebuilding"],
+    nfi: ["NFIs"],
+    wash: ["WASH"],
+    shelter: ["Shelter"],
+    infrastructure: ["Infrastructure"],
+    anticipatory: ["AnticipatoryAction"],
+    youthemployment: ["YouthEmployment"],
+    digital: ["DigitalInnovation"],
+    privatesector: ["PrivateSectorEngagement"],
+    globalevents: ["GlobalEvents"],
+    climatefinance: ["ClimateResilience"],
+    standby: ["StandbyRoster"],
+    diaspora: ["DiasporaProgramme"],
+    csostrategy: ["CivilSocietyEngagement"],
+  };
+
+  const KEYWORD_HASHTAGS = [
+    [/school|educat/i, "Education"],
+    [/health/i, "Health"],
+    [/legal|document/i, "LegalAid"],
+    [/water|sanitation|hygiene|\bwash\b/i, "WASH"],
+    [/shelter/i, "Shelter"],
+    [/\bfood\b|nutrition/i, "FoodSecurity"],
+    [/livelihood|income|employment|\bjob/i, "Livelihoods"],
+    [/refugee|displaced|displacement/i, "Refugees"],
+    [/women|girls|gender/i, "GenderEquality"],
+    [/child|children/i, "ChildProtection"],
+    [/mental health|psychosocial|mhpss/i, "MentalHealth"],
+    [/\bcash\b|financial/i, "CashAssistance"],
+    [/disabilit/i, "Disability"],
+    [/mine|explosive|ordnance/i, "MineAction"],
+  ];
+
+  // ---------- mentions & hashtags ----------
+
+  function handleToTag(h) {
+    let t = (h || "").trim();
+    t = t.replace(/^@+/, "");
+    t = t.replace(/[^A-Za-z0-9_]/g, "");
+    return t;
+  }
+  function nameToTag(name) {
+    if (!name) return "";
+    const acronym = name.match(/\(([A-Za-z]{2,10})\)/);
+    if (acronym) return acronym[1];
+    const words = name.replace(/[^A-Za-z0-9\s]/g, "").trim().split(/\s+/).filter(Boolean);
+    if (!words.length) return "";
+    if (words.length <= 3) return words.map((w) => upper1(w)).join("");
+    return words.map((w) => w.charAt(0).toUpperCase()).join("");
+  }
+  function locationTag(where) {
+    if (!where) return "";
+    const parts = where.split(",");
+    const place = parts[parts.length - 1].trim();
+    const words = place.replace(/[^A-Za-z0-9\s]/g, "").trim().split(/\s+/).filter(Boolean);
+    return words.map((w) => upper1(w.toLowerCase())).join("");
+  }
+  function toHashtagCase(raw) {
+    const cleaned = handleToTag(raw);
+    const parts = cleaned.split(/_+/).filter(Boolean);
+    if (!parts.length) return "";
+    return parts.map((p) => upper1(p)).join("");
+  }
+  function entityHashtag(handle, name) {
+    if (handle) {
+      const t = toHashtagCase(handle);
+      if (t) return t;
+    }
+    if (name) {
+      const t = nameToTag(name);
+      if (t) return t;
+    }
+    return "";
+  }
+
+  function generateMentions(v) {
+    const mentions = [];
+    if (v.orgHandle) mentions.push("@" + handleToTag(v.orgHandle));
+    if (v.donorHandle) mentions.push("@" + handleToTag(v.donorHandle));
+    if (v.partnerHandle) mentions.push("@" + handleToTag(v.partnerHandle));
+    return mentions;
+  }
+
+  function generateHashtags(v) {
+    const tags = [];
+    const pushTag = (t) => { if (t && !tags.includes(t)) tags.push(t); };
+
+    if (v.programme && PROGRAM_HASHTAGS[v.programme]) {
+      PROGRAM_HASHTAGS[v.programme].forEach(pushTag);
+    }
+    pushTag(toHashtagCase(v.orgHandle));
+    pushTag(entityHashtag(v.donorHandle, v.donor));
+    pushTag(entityHashtag(v.partnerHandle, v.partner));
+    pushTag(locationTag(v.where));
+
+    const contentText = [v.issue, v.involvement, v.changed, v.why].join(" ").toLowerCase();
+    KEYWORD_HASHTAGS.forEach(([re, tag]) => {
+      if (re.test(contentText)) pushTag(tag);
+    });
+
+    return tags.slice(0, 8).map((t) => "#" + t);
+  }
+
+  function appendTags(text, v, includeMentions) {
+    if (!text) return text;
+    let out = text;
+    if (includeMentions) {
+      const mentions = generateMentions(v);
+      if (mentions.length) out += `\n\n${mentions.join(" ")}`;
+    }
+    const hashtags = generateHashtags(v);
+    if (hashtags.length) out += `\n\n${hashtags.join(" ")}`;
+    return out;
   }
 
   // ---------- cliché / AI-tell scanner ----------
@@ -251,34 +424,103 @@
     const v = {};
     ids.forEach((id) => { v[id] = val(id); });
 
-    const metaText = buildMeta(v);
-    const linkedinText = buildLinkedin(v);
-    const websiteText = buildWebsite(v);
+    const metaBase = buildMeta(v, variantIndex.meta);
+    const linkedinBase = buildLinkedin(v, variantIndex.linkedin);
+    const websiteBase = buildWebsite(v, variantIndex.website);
 
-    outputs.meta.textContent = metaText;
-    outputs.linkedin.textContent = linkedinText;
-    outputs.website.textContent = websiteText;
+    outputs.meta.textContent = appendTags(metaBase, v, true);
+    outputs.linkedin.textContent = appendTags(linkedinBase, v, true);
+    outputs.website.textContent = appendTags(websiteBase, v, false);
 
-    setMeter(meters.meta, countSentences(metaText), 2, 4);
-    setMeter(meters.linkedin, countSentences(linkedinText), 3, null);
-    setMeter(meters.website, countSentences(websiteText), 5, null);
+    setMeter(meters.meta, countSentences(metaBase), 2, 4);
+    setMeter(meters.linkedin, countSentences(linkedinBase), 3, null);
+    setMeter(meters.website, countSentences(websiteBase), 5, null);
 
-    photoReminder.hidden = !websiteText;
+    photoReminder.hidden = !websiteBase;
 
     const hits = [
-      ...scanText("Instagram/Facebook", metaText),
-      ...scanText("LinkedIn", linkedinText),
-      ...scanText("Website", websiteText),
+      ...scanText("Instagram/Facebook", metaBase),
+      ...scanText("LinkedIn", linkedinBase),
+      ...scanText("Website", websiteBase),
       ...scanText("your Quote box", v.quote),
       ...scanText("your Why box", v.why),
     ];
     renderScan(hits);
   }
 
+  // ---------- suggestions ----------
+
+  const SUGGESTIONS = {
+    issue: [
+      "the family's documents were lost when they fled",
+      "she had no access to clean water for months",
+      "the nearest clinic was hours away on foot",
+    ],
+    involvement: [
+      "our mobile team worked on their case for four months",
+      "our outreach workers visited the community every week",
+      "our team provided cash assistance within days",
+    ],
+    changed: [
+      "her children can now enroll in school",
+      "the family can access clean water at home",
+      "she no longer has to walk for hours to fetch water",
+    ],
+    why: [
+      "without this support, families cannot access basic services",
+      "this remains one of the biggest barriers facing displaced families",
+      "the need is growing as the crisis continues",
+    ],
+    quote: [
+      "Now my children will go to school.",
+      "I never thought I'd see this day.",
+      "This changed everything for my family.",
+    ],
+  };
+
+  Object.keys(SUGGESTIONS).forEach((fieldId) => {
+    const field = fields[fieldId];
+    if (!field) return;
+
+    const box = document.createElement("div");
+    box.className = "suggestions";
+    box.hidden = true;
+
+    const label = document.createElement("span");
+    label.className = "suggestions-label";
+    label.textContent = "Try:";
+    box.appendChild(label);
+
+    SUGGESTIONS[fieldId].forEach((text) => {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "chip";
+      chip.textContent = text;
+      chip.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        const current = field.value.trim();
+        field.value = current ? `${current} ${text}` : upper1(text);
+        field.dispatchEvent(new Event("input"));
+        field.focus();
+      });
+      box.appendChild(chip);
+    });
+
+    field.insertAdjacentElement("afterend", box);
+
+    field.addEventListener("focus", () => { box.hidden = false; });
+    field.addEventListener("blur", () => {
+      setTimeout(() => { box.hidden = true; }, 150);
+    });
+  });
+
   // ---------- events ----------
 
   ids.forEach((id) => {
     fields[id].addEventListener("input", render);
+    if (fields[id].tagName === "SELECT") {
+      fields[id].addEventListener("change", render);
+    }
   });
 
   document.getElementById("toggle-guide").addEventListener("click", () => {
@@ -287,7 +529,10 @@
   });
 
   document.getElementById("clear-btn").addEventListener("click", () => {
-    ids.forEach((id) => { fields[id].value = ""; });
+    ids.forEach((id) => { fields[id].value = fields[id].tagName === "SELECT" ? "na" : ""; });
+    variantIndex.meta = 0;
+    variantIndex.linkedin = 0;
+    variantIndex.website = 0;
     render();
   });
 
@@ -313,6 +558,14 @@
         btn.textContent = original;
         btn.classList.remove("copied");
       }, 1400);
+    });
+  });
+
+  document.querySelectorAll(".regen-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const channel = btn.getAttribute("data-channel");
+      variantIndex[channel] = (variantIndex[channel] + 1) % 3;
+      render();
     });
   });
 

@@ -133,7 +133,7 @@ label{
   font-size:0.78rem;
 }
 
-input[type="text"], textarea{
+input[type="text"], textarea, select{
   width:100%;
   padding:9px 10px;
   border:1px solid var(--line);
@@ -144,10 +144,56 @@ input[type="text"], textarea{
   background:#fff;
   resize:vertical;
 }
-input[type="text"]:focus, textarea:focus{
+select{cursor:pointer;}
+input[type="text"]:focus, textarea:focus, select:focus{
   outline:none;
   border-color:var(--red);
   box-shadow:0 0 0 3px rgba(179,18,46,0.12);
+}
+
+.section-divider{
+  font-size:0.78rem;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:0.04em;
+  color:var(--red);
+  border-top:1px solid var(--line);
+  padding-top:14px;
+  margin:6px 0 14px;
+}
+.section-divider .opt{
+  text-transform:none;
+  letter-spacing:normal;
+  font-weight:400;
+}
+
+.suggestions{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:6px;
+  margin-top:6px;
+}
+.suggestions-label{
+  font-size:0.76rem;
+  color:var(--ink-soft);
+  margin-right:2px;
+}
+.chip{
+  background:var(--ground);
+  border:1px dashed var(--line);
+  color:var(--ink-soft);
+  padding:4px 9px;
+  border-radius:14px;
+  font-size:0.76rem;
+  cursor:pointer;
+  max-width:100%;
+  text-align:left;
+}
+.chip:hover{
+  border-color:var(--red);
+  color:var(--red-dark);
+  background:var(--paper);
 }
 
 .actions{
@@ -190,6 +236,11 @@ input[type="text"]:focus, textarea:focus{
   font-size:0.8rem;
   color:var(--ink-soft);
 }
+.channel-actions{
+  flex:none;
+  display:flex;
+  gap:8px;
+}
 .copy-btn{
   flex:none;
   background:var(--red);
@@ -202,6 +253,21 @@ input[type="text"]:focus, textarea:focus{
 }
 .copy-btn:hover{background:var(--red-dark);}
 .copy-btn.copied{background:var(--ok);}
+
+.regen-btn{
+  flex:none;
+  background:none;
+  border:1px solid var(--line);
+  color:var(--ink-soft);
+  padding:7px 12px;
+  border-radius:6px;
+  font-size:0.82rem;
+  cursor:pointer;
+}
+.regen-btn:hover{
+  border-color:var(--red);
+  color:var(--red-dark);
+}
 
 .output-text{
   white-space:pre-wrap;
@@ -280,10 +346,11 @@ input[type="text"]:focus, textarea:focus{
     --ground:#1a1918;
     --line:#3a3735;
   }
-  input[type="text"], textarea{
+  input[type="text"], textarea, select{
     background:#2a2827;
     color:var(--ink);
   }
+  .chip{background:#232120;}
   .scan-card{background:#2a1d1c; border-color:#4a2b27;}
 }
 :root[data-theme="dark"]{
@@ -293,8 +360,9 @@ input[type="text"]:focus, textarea:focus{
   --ground:#1a1918;
   --line:#3a3735;
 }
-:root[data-theme="dark"] input[type="text"], :root[data-theme="dark"] textarea{
+:root[data-theme="dark"] input[type="text"], :root[data-theme="dark"] textarea, :root[data-theme="dark"] select{
   background:#2a2827;
   color:var(--ink);
 }
+:root[data-theme="dark"] .chip{background:#232120;}
 :root[data-theme="dark"] .scan-card{background:#2a1d1c; border-color:#4a2b27;}

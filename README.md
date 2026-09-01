@@ -46,13 +46,41 @@ verbatim without a read-through.
 - **Website** — long, 5–8+ sentences, the full framework — the anchor the
   other channels link back to.
 
+## Mentions, hashtags & programme tagging
+
+Optional boxes under **Mentions & tags** let you add real social handles for
+your organization, the donor, and the partner (e.g. `@drc_ngo`, `@EU_ECHO`).
+Handles are only ever used to build the `@mention` line exactly as typed —
+nothing is guessed, since an invented handle could tag the wrong account.
+
+Hashtags are generated automatically and appended under each caption, built
+from (in order): the selected **Programme** (see below), the organization/
+donor/partner handles or names, the location, and keywords found in the
+story itself (school → `#Education`, water/sanitation → `#WASH`, and so on).
+
+The optional **Programme** dropdown covers the standard programme areas
+(Protection, Economic Recovery, Humanitarian Disarmament and Peacebuilding,
+Shelter/WASH/Infrastructure, Innovation, Civil Society Engagement) and feeds
+a matching hashtag (e.g. Child Protection → `#ChildProtection`) — it doesn't
+alter the caption prose itself.
+
+## Regenerate
+
+Each caption has a **Regenerate** button that cycles through different
+phrasing (different connecting words and transitions) while keeping every
+fact in the same order the guidelines specify — a quick way to see a few
+options and pick the one that reads best, without changing any content.
+
 ## Using it
 
 Open `index.html` in a browser (or serve the folder with any static file
 server). Fill in the boxes on the left; the three captions on the right
-update as you type. Each has a **Copy** button and a live sentence counter
-against the channel's target length. Two optional boxes — **project phase**
-and **website link** — strengthen the LinkedIn caption specifically, per the
+update as you type. As you start typing in the story boxes (issue,
+involvement, changed, why, quote), a row of clickable example phrasings
+appears underneath to help if you're stuck — click one to drop it into the
+box. Each caption has a **Copy** button and a live sentence counter against
+the channel's target length. Two optional boxes — **project phase** and
+**website link** — strengthen the LinkedIn caption specifically, per the
 guidelines' note to add project phase and a link back to the full story.
 
 No build step, no dependencies, no data leaves the browser.
