@@ -697,7 +697,9 @@ input[type="text"]:focus, textarea:focus, select:focus{
 .meter-feedback{
   font-weight:500;
   color:var(--accent-text);
-  font-size:0.78rem;
+  font-size:0.8rem;
+  min-height:1.2em;
+  display:inline-block;
 }
 
 .photo-reminder{
@@ -851,10 +853,17 @@ input[type="text"]:focus, textarea:focus, select:focus{
     padding:22px 20px;
     gap:18px;
   }
-  .topbar{padding:14px 20px;}
-  .workspace{padding:24px 20px;}
-  .panel{padding:20px;}
+  .topbar{padding:14px 20px; flex-direction:column; gap:10px;}
+  .topbar-right{flex-direction:column; gap:8px; width:100%;}
+  .workspace{padding:20px 16px;}
+  .workspace-head{padding:16px 0;}
+  .panel{padding:18px 16px;}
   .tab-list{flex-wrap:wrap;}
+  .workspace-sub{font-size:0.9rem;}
+  .field-row{grid-template-columns:1fr;}
+  .channel-card{padding:14px 16px;}
+  .meter-row{font-size:0.75rem; gap:4px;}
+  .meter-feedback{font-size:0.75rem;}
 }
 
 /* ---------- dark mode ---------- */
