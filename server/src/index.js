@@ -3,8 +3,6 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 
-const authRoutes = require("./routes/auth");
-const usageRoutes = require("./routes/usage");
 const billingRoutes = require("./routes/billing");
 
 const app = express();
@@ -19,12 +17,9 @@ app.use(
     origin: allowedOrigins.length ? allowedOrigins : true,
   })
 );
-app.use(express.json());
 
 app.get("/api/health", (_req, res) => res.json({ ok: true }));
 
-app.use("/api/auth", authRoutes);
-app.use("/api/usage", usageRoutes);
 app.use("/api/billing", billingRoutes);
 
 app.use((req, res) => {
@@ -39,5 +34,5 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
-  console.log(`Caption Generator API listening on :${PORT}`);
+  console.log(`Caption Generator webhook listener on :${PORT}`);
 });

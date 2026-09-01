@@ -576,221 +576,199 @@
     });
   });
 
-  // ---------- account / auth / usage gating ----------
+  // ---------- free-tier usage + license key (no server, no accounts) ----------
+  //
+  // The 3-free-generations limit is enforced with a localStorage counter on
+  // this device only — resettable by clearing browser data, but nothing
+  // about anyone is ever sent anywhere to enforce it. Paid access works the
+  // same way: a license key is verified entirely in the browser (its
+  // cryptographic signature is checked against the public key below) with
+  // no network call at all. See server/README.md for how a key gets minted
+  // when someone actually pays.
 
-  const API_BASE = window.CAPTION_API_BASE || "http://localhost:4000";
-  const TOKEN_KEY = "captiongen_token";
+  const FREE_LIMIT = 3;
+  const USAGE_KEY = "captiongen_free_used";
+  const LICENSE_KEY = "captiongen_license";
 
-  const authPanelWrap = document.getElementById("auth-panel-wrap");
-  const appMain = document.getElementById("app-main");
-  const accountBar = document.getElementById("account-bar");
   const accountStatus = document.getElementById("account-status");
-  const logoutBtn = document.getElementById("logout-btn");
   const upgradeLinkBtn = document.getElementById("upgrade-link-btn");
-  const authForm = document.getElementById("auth-form");
-  const authEmail = document.getElementById("auth-email");
-  const authPassword = document.getElementById("auth-password");
-  const authError = document.getElementById("auth-error");
-  const authHeading = document.getElementById("auth-heading");
-  const authSubmit = document.getElementById("auth-submit");
-  const authToggleMode = document.getElementById("auth-toggle-mode");
+  const redeemLinkBtn = document.getElementById("redeem-link-btn");
+  const redeemPanelWrap = document.getElementById("redeem-panel-wrap");
+  const licenseInput = document.getElementById("license-input");
+  const licenseError = document.getElementById("license-error");
+  const redeemSubmitBtn = document.getElementById("redeem-submit-btn");
+  const redeemCancelBtn = document.getElementById("redeem-cancel-btn");
   const generateBtn = document.getElementById("generate-btn");
   const usageNote = document.getElementById("usage-note");
   const quotaBanner = document.getElementById("quota-banner");
   const quotaUpgradeBtn = document.getElementById("quota-upgrade-btn");
+  const quotaRedeemBtn = document.getElementById("quota-redeem-btn");
 
-  let authMode = "signup";
+  function getFreeUsed() {
+    return parseInt(localStorage.getItem(USAGE_KEY) || "0", 10) || 0;
+  }
+  function setFreeUsed(n) {
+    localStorage.setItem(USAGE_KEY, String(n));
+  }
+  function getStoredLicense() {
+    return localStorage.getItem(LICENSE_KEY) || "";
+  }
+  function setStoredLicense(key) {
+    localStorage.setItem(LICENSE_KEY, key);
+  }
+  function clearStoredLicense() {
+    localStorage.removeItem(LICENSE_KEY);
+  }
 
-  function getToken() { return localStorage.getItem(TOKEN_KEY); }
-  function setToken(t) { localStorage.setItem(TOKEN_KEY, t); }
-  function clearToken() { localStorage.removeItem(TOKEN_KEY); }
+  function b64urlToBytes(s) {
+    s = s.replace(/-/g, "+").replace(/_/g, "/");
+    while (s.length % 4) s += "=";
+    const bin = atob(s);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return bytes;
+  }
 
-  async function apiFetch(path, options) {
-    options = options || {};
-    const token = getToken();
-    const headers = Object.assign({ "Content-Type": "application/json" }, options.headers || {});
-    if (token) headers.Authorization = "Bearer " + token;
-    let res;
+  let cachedPublicKey = null;
+  async function getPublicKey() {
+    if (cachedPublicKey) return cachedPublicKey;
+    cachedPublicKey = await crypto.subtle.importKey(
+      "jwk",
+      window.CAPTION_LICENSE_PUBLIC_JWK,
+      { name: "ECDSA", namedCurve: "P-256" },
+      true,
+      ["verify"]
+    );
+    return cachedPublicKey;
+  }
+
+  // Verifies a license key entirely in the browser: no server call, nothing
+  // sent anywhere. Returns the decoded payload ({ref, iat, exp}) if the
+  // signature is valid and it hasn't expired, or null otherwise.
+  async function verifyLicense(key) {
+    if (!key || typeof key !== "string" || key.indexOf(".") === -1) return null;
+    const parts = key.trim().split(".");
+    if (parts.length !== 2) return null;
+    let payloadBytes, sigBytes, payload;
     try {
-      res = await fetch(API_BASE + path, Object.assign({}, options, { headers }));
+      payloadBytes = b64urlToBytes(parts[0]);
+      sigBytes = b64urlToBytes(parts[1]);
+      payload = JSON.parse(new TextDecoder().decode(payloadBytes));
     } catch (e) {
-      const err = new Error("network_error");
-      err.status = 0;
-      throw err;
+      return null;
     }
-    let data = null;
-    try { data = await res.json(); } catch (e) { data = null; }
-    if (!res.ok) {
-      const err = new Error((data && data.error) || "request_failed");
-      err.status = res.status;
-      err.data = data;
-      throw err;
+    if (!payload || typeof payload.exp !== "number") return null;
+    if (payload.exp * 1000 < Date.now()) return null;
+    try {
+      const publicKey = await getPublicKey();
+      const valid = await crypto.subtle.verify(
+        { name: "ECDSA", hash: "SHA-256" },
+        publicKey,
+        sigBytes,
+        payloadBytes
+      );
+      return valid ? payload : null;
+    } catch (e) {
+      return null;
     }
-    return data;
   }
 
-  function showAuthPanel() {
-    authPanelWrap.hidden = false;
-    appMain.hidden = true;
-    accountBar.hidden = true;
+  let currentLicense = null; // decoded {ref, iat, exp} once verified, else null
+
+  function daysLeft(payload) {
+    return Math.max(0, Math.ceil((payload.exp * 1000 - Date.now()) / 86400000));
   }
 
-  function showApp() {
-    authPanelWrap.hidden = true;
-    appMain.hidden = false;
-    accountBar.hidden = false;
-  }
-
-  function renderUsage(status) {
-    if (status.isSubscribed) {
-      accountStatus.textContent = `${authEmailCache || "Signed in"} · unlimited (subscribed)`;
+  function renderStatus() {
+    if (currentLicense) {
+      const left = daysLeft(currentLicense);
+      accountStatus.textContent = `Unlimited — license active (${left} day${left === 1 ? "" : "s"} left)`;
       upgradeLinkBtn.hidden = true;
-      usageNote.textContent = "Unlimited generations — thanks for subscribing.";
+      redeemLinkBtn.hidden = true;
+      usageNote.textContent = "Unlimited generations.";
       quotaBanner.hidden = true;
     } else {
-      accountStatus.textContent = `${authEmailCache || "Signed in"} · ${status.freeRemaining} of ${status.freeLimit} free generations left`;
+      const used = getFreeUsed();
+      const remaining = Math.max(0, FREE_LIMIT - used);
+      accountStatus.textContent = `${remaining} of ${FREE_LIMIT} free generations left on this device`;
       upgradeLinkBtn.hidden = false;
-      usageNote.textContent = status.freeRemaining > 0
-        ? `${status.freeRemaining} of ${status.freeLimit} free generations left`
-        : "No free generations left.";
-      quotaBanner.hidden = status.canGenerate;
+      redeemLinkBtn.hidden = false;
+      usageNote.textContent = remaining > 0
+        ? `${remaining} of ${FREE_LIMIT} free generations left`
+        : "No free generations left on this device.";
+      quotaBanner.hidden = remaining > 0;
     }
   }
 
-  let authEmailCache = "";
-
-  async function refreshSession() {
-    const token = getToken();
-    if (!token) {
-      showAuthPanel();
+  async function checkStoredLicense() {
+    const stored = getStoredLicense();
+    if (!stored) {
+      currentLicense = null;
+      renderStatus();
       return;
     }
-    try {
-      const [{ user }, status] = await Promise.all([
-        apiFetch("/api/auth/me"),
-        apiFetch("/api/usage/status"),
-      ]);
-      authEmailCache = user.email;
-      showApp();
-      renderUsage(status);
-    } catch (e) {
-      clearToken();
-      showAuthPanel();
-    }
+    const payload = await verifyLicense(stored);
+    currentLicense = payload || null;
+    if (!payload) clearStoredLicense();
+    renderStatus();
   }
 
-  function setAuthMode(mode) {
-    authMode = mode;
-    authError.hidden = true;
-    if (mode === "signup") {
-      authHeading.textContent = "Sign up to get started";
-      authSubmit.textContent = "Sign up";
-      authToggleMode.textContent = "Already have an account? Log in";
-      authPassword.setAttribute("autocomplete", "new-password");
-    } else {
-      authHeading.textContent = "Log in";
-      authSubmit.textContent = "Log in";
-      authToggleMode.textContent = "New here? Sign up";
-      authPassword.setAttribute("autocomplete", "current-password");
-    }
+  function openRedeemPanel() {
+    licenseError.hidden = true;
+    licenseInput.value = "";
+    redeemPanelWrap.hidden = false;
+    licenseInput.focus();
+  }
+  function closeRedeemPanel() {
+    redeemPanelWrap.hidden = true;
   }
 
-  authToggleMode.addEventListener("click", () => {
-    setAuthMode(authMode === "signup" ? "login" : "signup");
-  });
+  redeemLinkBtn.addEventListener("click", openRedeemPanel);
+  quotaRedeemBtn.addEventListener("click", openRedeemPanel);
+  redeemCancelBtn.addEventListener("click", closeRedeemPanel);
 
-  const AUTH_ERROR_COPY = {
-    invalid_email: "Enter a valid email address.",
-    password_too_short: "Password must be at least 8 characters.",
-    email_taken: "An account with that email already exists — try logging in instead.",
-    invalid_credentials: "Incorrect email or password.",
-    network_error: "Couldn't reach the server. Is the API running?",
-  };
-
-  authForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    authError.hidden = true;
-    authSubmit.disabled = true;
-    try {
-      const path = authMode === "signup" ? "/api/auth/signup" : "/api/auth/login";
-      const data = await apiFetch(path, {
-        method: "POST",
-        body: JSON.stringify({ email: authEmail.value, password: authPassword.value }),
-      });
-      setToken(data.token);
-      authPassword.value = "";
-      await refreshSession();
-    } catch (err) {
-      authError.textContent = AUTH_ERROR_COPY[err.data && err.data.error] || AUTH_ERROR_COPY[err.message] || "Something went wrong — try again.";
-      authError.hidden = false;
-    } finally {
-      authSubmit.disabled = false;
+  redeemSubmitBtn.addEventListener("click", async () => {
+    licenseError.hidden = true;
+    redeemSubmitBtn.disabled = true;
+    const key = licenseInput.value.trim();
+    const payload = await verifyLicense(key);
+    redeemSubmitBtn.disabled = false;
+    if (!payload) {
+      licenseError.textContent = "That key isn't valid, or it's expired.";
+      licenseError.hidden = false;
+      return;
     }
+    setStoredLicense(key);
+    currentLicense = payload;
+    renderStatus();
+    closeRedeemPanel();
   });
 
-  logoutBtn.addEventListener("click", () => {
-    clearToken();
-    hasGenerated = false;
-    ids.forEach((id) => { fields[id].value = fields[id].tagName === "SELECT" ? "na" : ""; });
-    variantIndex.meta = 0;
-    variantIndex.linkedin = 0;
-    variantIndex.website = 0;
+  function goToUpgrade() {
+    const url = window.CAPTION_UPGRADE_URL;
+    if (!url) {
+      alert("Online upgrades aren't set up yet — payment isn't wired up. Check back soon.");
+      return;
+    }
+    window.open(url, "_blank", "noopener");
+  }
+  upgradeLinkBtn.addEventListener("click", goToUpgrade);
+  quotaUpgradeBtn.addEventListener("click", goToUpgrade);
+
+  generateBtn.addEventListener("click", () => {
+    if (!currentLicense && getFreeUsed() >= FREE_LIMIT) {
+      renderStatus();
+      return;
+    }
+    if (!currentLicense) {
+      setFreeUsed(getFreeUsed() + 1);
+    }
+    hasGenerated = true;
     generateCaptions();
-    quotaBanner.hidden = true;
-    showAuthPanel();
+    renderStatus();
   });
 
-  generateBtn.addEventListener("click", async () => {
-    generateBtn.disabled = true;
-    const original = generateBtn.textContent;
-    generateBtn.textContent = "Generating…";
-    try {
-      const status = await apiFetch("/api/usage/generate", { method: "POST" });
-      renderUsage(status);
-      hasGenerated = true;
-      generateCaptions();
-    } catch (err) {
-      if (err.status === 402) {
-        renderUsage(err.data);
-      } else if (err.status === 401) {
-        clearToken();
-        showAuthPanel();
-      } else {
-        usageNote.textContent = "Couldn't reach the server — try again.";
-      }
-    } finally {
-      generateBtn.textContent = original;
-      generateBtn.disabled = false;
-    }
-  });
-
-  async function attemptUpgrade(btn) {
-    const original = btn.textContent;
-    btn.disabled = true;
-    btn.textContent = "Working…";
-    try {
-      const data = await apiFetch("/api/billing/dev-simulate-upgrade", { method: "POST" });
-      if (data.simulated) {
-        alert("Dev mode: upgrade simulated — no real payment was made. Real billing isn't wired up yet.");
-      }
-      await refreshSession();
-    } catch (err) {
-      if (err.status === 404) {
-        alert("Online upgrades aren't available yet — payment isn't set up. Check back soon.");
-      } else {
-        alert("Couldn't process that — try again.");
-      }
-    } finally {
-      btn.textContent = original;
-      btn.disabled = false;
-    }
-  }
-
-  upgradeLinkBtn.addEventListener("click", () => attemptUpgrade(upgradeLinkBtn));
-  quotaUpgradeBtn.addEventListener("click", () => attemptUpgrade(quotaUpgradeBtn));
-
-  setAuthMode("signup");
-  refreshSession();
+  checkStoredLicense();
 
   // ---------- image caption (needs the Claude "sample" runtime capability) ----------
 

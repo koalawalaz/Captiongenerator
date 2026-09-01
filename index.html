@@ -19,38 +19,31 @@
       </p>
     </div>
     <p class="tagline">Fill the story once. Get channel-ready captions that sound like a person wrote them.</p>
-    <div class="account-bar" id="account-bar" hidden>
+    <div class="account-bar" id="account-bar">
       <span class="account-status" id="account-status"></span>
-      <button class="link-btn" id="upgrade-link-btn" type="button" hidden>Upgrade &mdash; $5/month</button>
-      <button class="link-btn" id="logout-btn" type="button">Log out</button>
+      <button class="link-btn" id="upgrade-link-btn" type="button">Upgrade &mdash; $5/month</button>
+      <button class="link-btn" id="redeem-link-btn" type="button">Have a license key?</button>
     </div>
   </div>
 </header>
 
-<div class="auth-panel-wrap" id="auth-panel-wrap">
-  <section class="panel auth-panel" id="auth-panel">
-    <h2 id="auth-heading">Sign up to get started</h2>
-    <p class="auth-sub">3 free caption generations, then $5/month for unlimited.</p>
-    <form id="auth-form" autocomplete="on">
-      <div class="field">
-        <label for="auth-email">Email</label>
-        <input type="email" id="auth-email" required autocomplete="email">
-      </div>
-      <div class="field">
-        <label for="auth-password">Password</label>
-        <input type="password" id="auth-password" required autocomplete="current-password" minlength="8">
-        <p class="field-hint">At least 8 characters.</p>
-      </div>
-      <p class="auth-error" id="auth-error" hidden></p>
-      <div class="auth-actions">
-        <button type="submit" class="upload-btn" id="auth-submit">Sign up</button>
-        <button type="button" class="link-btn" id="auth-toggle-mode">Already have an account? Log in</button>
-      </div>
-    </form>
+<div class="redeem-panel-wrap" id="redeem-panel-wrap" hidden>
+  <section class="panel redeem-panel">
+    <h2>Enter your license key</h2>
+    <p class="auth-sub">You'll have received this after subscribing. It unlocks unlimited generations on this device.</p>
+    <div class="field">
+      <label for="license-input">License key</label>
+      <textarea id="license-input" rows="2" placeholder="Paste the key you were given"></textarea>
+    </div>
+    <p class="auth-error" id="license-error" hidden></p>
+    <div class="auth-actions">
+      <button type="button" class="upload-btn" id="redeem-submit-btn">Unlock</button>
+      <button type="button" class="link-btn" id="redeem-cancel-btn">Cancel</button>
+    </div>
   </section>
 </div>
 
-<main class="layout" id="app-main" hidden>
+<main class="layout" id="app-main">
 
   <section class="panel form-panel">
     <div class="panel-head">
@@ -221,7 +214,7 @@
       <span class="usage-note" id="usage-note"></span>
     </div>
     <div class="quota-banner" id="quota-banner" hidden>
-      <p>You've used all 3 free caption generations this month. <button class="link-btn" id="quota-upgrade-btn" type="button">Upgrade &mdash; $5/month</button> for unlimited generations.</p>
+      <p>You've used all 3 free caption generations on this device. <button class="link-btn" id="quota-upgrade-btn" type="button">Upgrade &mdash; $5/month</button> for unlimited, or <button class="link-btn" id="quota-redeem-btn" type="button">enter your license key</button> if you already have one.</p>
     </div>
 
     <div class="channel-card" data-channel="meta">
@@ -321,8 +314,20 @@
 </footer>
 
 <script>
-  // Point this at your deployed server/ API before publishing (see server/README.md).
-  window.CAPTION_API_BASE = window.CAPTION_API_BASE || "http://localhost:4000";
+  // Where "Upgrade" sends people to actually pay — your payment gateway's
+  // hosted checkout page. Nothing works until this is a real URL.
+  window.CAPTION_UPGRADE_URL = window.CAPTION_UPGRADE_URL || "";
+
+  // The PUBLIC half of the keypair from `node server/generate-keys.js`.
+  // Safe to expose here — it can only verify license keys, never mint them.
+  // This placeholder is a real (but throwaway, publicly-known) test key —
+  // replace it with your own before accepting real payments, or anyone
+  // who finds this test key's matching private key could mint keys too.
+  window.CAPTION_LICENSE_PUBLIC_JWK = window.CAPTION_LICENSE_PUBLIC_JWK || {
+    "kty": "EC", "crv": "P-256",
+    "x": "rCw4hPcNoa-bpcZfpS7zwYa8xTjcMX7vfOgxD1XhfGo",
+    "y": "daJuKnjCmA25zB6JpzfYuHTs3JPyrh4X3omAUWeM9RQ"
+  };
 </script>
 <script src="script.js"></script>
 </body>
