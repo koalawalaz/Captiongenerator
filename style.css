@@ -284,6 +284,9 @@ input[type="text"]:focus, textarea:focus, select:focus{
   color:var(--ink-soft);
   font-style:italic;
 }
+#image-caption-output:empty::before{
+  content:"Thinking…";
+}
 
 .meter-row{
   display:flex;
@@ -341,12 +344,20 @@ input[type="text"]:focus, textarea:focus, select:focus{
   font-size:0.86rem;
   color:var(--ink-soft);
 }
+.image-availability{
+  margin:0;
+  font-size:0.84rem;
+  color:var(--warn);
+  border-left:3px solid var(--warn);
+  padding-left:8px;
+}
 .image-uploader{
   display:flex;
   align-items:center;
   gap:12px;
   flex-wrap:wrap;
 }
+.image-uploader[hidden]{display:none;}
 .upload-btn{
   display:inline-block;
   background:var(--accent);
@@ -370,6 +381,7 @@ input[type="text"]:focus, textarea:focus, select:focus{
   margin-top:18px;
   flex-wrap:wrap;
 }
+.image-preview[hidden]{display:none;}
 .image-preview img{
   width:180px;
   height:180px;

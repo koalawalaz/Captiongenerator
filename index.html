@@ -245,13 +245,14 @@
 </main>
 
 <div class="image-panel-wrap">
-  <section class="panel image-panel" id="image-caption-section" hidden>
+  <section class="panel image-panel" id="image-caption-section">
     <div class="panel-head">
       <h2>3. Image caption</h2>
     </div>
-    <p class="image-panel-sub">Upload the photo you're posting alongside this story to get a short caption for its file name or alt text &mdash; 3 to 4 words.</p>
+    <p class="image-panel-sub">Upload the photo you're posting alongside this story to get a short caption for its file name or alt text &mdash; 3 to 4 words, written by looking at the actual image.</p>
+    <p class="image-availability" id="image-availability">Checking availability&hellip;</p>
 
-    <div class="image-uploader">
+    <div class="image-uploader" id="image-uploader" hidden>
       <label class="upload-btn" for="image-input">Choose image</label>
       <input type="file" id="image-input" hidden>
       <span class="image-status" id="image-status"></span>

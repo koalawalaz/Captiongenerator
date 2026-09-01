@@ -146,6 +146,8 @@
     if (v.who && v.where) sentences.push(`${upper1(v.who)}, ${whereLeadin(v.where)}.`);
     else if (v.who) sentences.push(`${upper1(v.who)}.`);
 
+    if (v.issue) sentences.push(sentenceFrom(v.issue));
+
     let s1 = "";
     if (v.timeframe) s1 += `${timeframeLeadin} ${stripLeadingSince(v.timeframe)}, `;
     if (v.where) s1 += `our team in ${v.where} `;
@@ -582,7 +584,6 @@
   // ---------- image caption (needs the Claude "sample" runtime capability) ----------
 
   (async function setupImageCaptioner() {
-    const section = document.getElementById("image-caption-section");
     const fileInput = document.getElementById("image-input");
     const statusEl = document.getElementById("image-status");
     const previewWrap = document.getElementById("image-preview");
@@ -590,8 +591,19 @@
     const captionOut = document.getElementById("image-caption-output");
     const regenBtn = document.getElementById("image-regen-btn");
     const copyBtn = document.getElementById("image-copy-btn");
+    const availabilityEl = document.getElementById("image-availability");
+    const uploaderEl = document.getElementById("image-uploader");
 
-    if (!window.claude || typeof window.claude.use !== "function") return;
+    function unavailable(message) {
+      availabilityEl.textContent = message;
+      availabilityEl.hidden = false;
+      uploaderEl.hidden = true;
+    }
+
+    if (!window.claude || typeof window.claude.use !== "function") {
+      unavailable("Image captioning only works when this page is opened as a Claude artifact — not from a plain HTML file or another host.");
+      return;
+    }
 
     let sample;
     try {
@@ -599,17 +611,25 @@
     } catch (e) {
       sample = null;
     }
-    if (!sample) return;
+    if (!sample) {
+      unavailable("Image captioning isn't available for this account or in this view.");
+      return;
+    }
 
     let limits;
     try {
       limits = await sample.limits();
     } catch (e) {
+      unavailable("Couldn't check image captioning availability — try reloading the page.");
       return;
     }
-    if (!limits.images) return;
+    if (!limits.images) {
+      unavailable("This view can't send images to Claude, so image captioning isn't available here.");
+      return;
+    }
 
-    section.hidden = false;
+    availabilityEl.hidden = true;
+    uploaderEl.hidden = false;
     fileInput.accept = limits.images.mediaTypes.join(",");
 
     let currentFile = null;
