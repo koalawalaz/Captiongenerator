@@ -1,7 +1,3 @@
-databases:
-  - name: caption-generator-db
-    plan: free
-
 services:
   - type: web
     name: caption-generator-api
@@ -11,10 +7,11 @@ services:
     buildCommand: npm install && npx prisma generate && npx prisma migrate deploy
     startCommand: npm start
     envVars:
+      # Paste your Neon connection string here after creating a free
+      # database at neon.tech (see server/README.md) — Render's own free
+      # Postgres tier expires after ~30 days, Neon's doesn't.
       - key: DATABASE_URL
-        fromDatabase:
-          name: caption-generator-db
-          property: connectionString
+        sync: false
       - key: JWT_SECRET
         generateValue: true
       - key: CORS_ORIGIN
