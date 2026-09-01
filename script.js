@@ -6,7 +6,8 @@
     "howmany", "timeframe", "results", "donor", "partner",
     "donorHandle", "partnerHandle", "orgHandle", "programme",
     "phase", "link", "tone",
-    "timeframeMode", "timeframeDate", "timeframeDateTo", "timeframeNumber", "timeframeUnit"
+    "timeframeMode", "timeframeDate", "timeframeDateTo", "timeframeNumber", "timeframeUnit",
+    "detailSlider"
   ];
   const fields = {};
   ids.forEach((id) => { fields[id] = document.getElementById(id); });
@@ -41,6 +42,7 @@
   const scanList = document.getElementById("scan-list");
 
   const variantIndex = { meta: 0, linkedin: 0, website: 0 };
+  const MAX_DETAIL_LEVEL = 5;
 
   // ---------- text helpers ----------
 
@@ -182,7 +184,7 @@
     return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   }
 
-  function buildMeta(v, variant, tone = "balanced") {
+  function buildMeta(v, variant, tone = "balanced", detailLevel = MAX_DETAIL_LEVEL) {
     const sentences = [];
     const whereLeadin = WHERE_LEADINS[variant % WHERE_LEADINS.length];
     const donorLeadin = pick(getDonorLeadins(tone), variant);
@@ -211,10 +213,12 @@
       sentences.push(s);
     }
 
+    if (detailLevel >= 1 && v.why) sentences.push(sentenceFrom(v.why));
+
     return joinSentences(sentences);
   }
 
-  function buildLinkedin(v, variant, tone = "balanced") {
+  function buildLinkedin(v, variant, tone = "balanced", detailLevel = MAX_DETAIL_LEVEL) {
     const sentences = [];
     const timeframeLeadin = pick(TIMEFRAME_LEADINS, variant);
     const donorLeadin = pick(getDonorLeadins(tone), variant);
@@ -235,9 +239,7 @@
     s1 = clean(upper1(s1)) + ".";
     sentences.push(s1);
 
-    if (v.results) sentences.push(sentenceFrom(v.results));
-
-    if (v.donor || v.changed) {
+    if (detailLevel >= 1 && (v.donor || v.changed)) {
       let s2 = "";
       if (v.donor) {
         s2 += donorLeadin(v.donor);
@@ -249,14 +251,15 @@
       if (s2 !== ".") sentences.push(s2);
     }
 
-    if (v.why) sentences.push(sentenceFrom(v.why));
-    if (v.phase) sentences.push(sentenceFrom(v.phase));
-    if (v.link) sentences.push(`${linkLeadin} ${v.link}.`);
+    if (detailLevel >= 2 && v.results) sentences.push(sentenceFrom(v.results));
+    if (detailLevel >= 3 && v.why) sentences.push(sentenceFrom(v.why));
+    if (detailLevel >= 4 && v.phase) sentences.push(sentenceFrom(v.phase));
+    if (detailLevel >= 5 && v.link) sentences.push(`${linkLeadin} ${v.link}.`);
 
     return joinSentences(sentences);
   }
 
-  function buildWebsite(v, variant, tone = "balanced") {
+  function buildWebsite(v, variant, tone = "balanced", detailLevel = MAX_DETAIL_LEVEL) {
     const sentences = [];
     const whereLeadin = WHERE_LEADINS[variant % WHERE_LEADINS.length];
     const timeframeLeadin = pick(TIMEFRAME_LEADINS, variant);
@@ -272,14 +275,14 @@
     else if (v.where) sentences.push(`${upper1(v.where)}.`);
 
     if (v.issue) sentences.push(sentenceFrom(v.issue));
-    if (v.why) sentences.push(sentenceFrom(v.why));
+    if (detailLevel >= 1 && v.why) sentences.push(sentenceFrom(v.why));
 
-    if (v.donor) sentences.push(pick(buildDonorCreditTails(tone), variant)(v.donor));
-    if (v.partner) sentences.push(pick(PARTNER_PHRASES, variant)(v.partner));
+    if (detailLevel >= 2 && v.donor) sentences.push(pick(buildDonorCreditTails(tone), variant)(v.donor));
+    if (detailLevel >= 3 && v.partner) sentences.push(pick(PARTNER_PHRASES, variant)(v.partner));
     if (v.involvement) sentences.push(sentenceFrom(v.involvement));
     if (v.changed) sentences.push(sentenceFrom(v.changed));
 
-    if (v.timeframe || v.howmany) {
+    if (detailLevel >= 4 && (v.timeframe || v.howmany)) {
       let s = "";
       if (v.timeframe) s += `${timeframeLeadin} ${stripLeadingSince(v.timeframe)}, `;
       const tail = v.howmany ? `the program has reached ${v.howmany}` : "the program has grown";
@@ -287,7 +290,7 @@
       s = clean(s) + ".";
       sentences.push(s);
     }
-    if (v.results) sentences.push(sentenceFrom(v.results));
+    if (detailLevel >= 5 && v.results) sentences.push(sentenceFrom(v.results));
 
     return joinSentences(sentences);
   }
@@ -586,9 +589,11 @@
     ids.forEach((id) => { v[id] = val(id); });
 
     const tone = v.tone || "balanced";
-    const metaBase = buildMeta(v, variantIndex.meta, tone);
-    const linkedinBase = buildLinkedin(v, variantIndex.linkedin, tone);
-    const websiteBase = buildWebsite(v, variantIndex.website, tone);
+    const detailLevel = parseInt(v.detailSlider, 10);
+    const level = isNaN(detailLevel) ? MAX_DETAIL_LEVEL : detailLevel;
+    const metaBase = buildMeta(v, variantIndex.meta, tone, level);
+    const linkedinBase = buildLinkedin(v, variantIndex.linkedin, tone, level);
+    const websiteBase = buildWebsite(v, variantIndex.website, tone, level);
 
     outputs.meta.textContent = appendTags(metaBase, v, true);
     outputs.linkedin.textContent = appendTags(linkedinBase, v, true);
@@ -702,6 +707,8 @@
     fields.timeframeUnit.value = "months";
     populateTimeframeNumberOptions("months");
     setTimeframeMode("date");
+    fields.detailSlider.value = String(MAX_DETAIL_LEVEL);
+    updateDetailSliderFill();
     variantIndex.meta = 0;
     variantIndex.linkedin = 0;
     variantIndex.website = 0;
@@ -1229,6 +1236,7 @@
     populateTimeframeNumberOptions(fields.timeframeUnit.value);
     if (typeof draft.timeframeNumber === "string") fields.timeframeNumber.value = draft.timeframeNumber;
     setTimeframeMode(draft.timeframeMode || "date");
+    updateDetailSliderFill();
   }
 
   ids.forEach((id) => {
@@ -1240,6 +1248,33 @@
   fields.tone.addEventListener("change", () => {
     if (hasGenerated) generateCaptions();
   });
+
+  // ---------- level-of-detail slider ----------
+  //
+  // Drag right to reveal more of your own already-filled-in optional
+  // boxes (results, why, phase, link, donor/partner credit...) in the
+  // order each channel builder treats them as least essential first.
+  // Never invents new sentences — only chooses how many of your own
+  // filled fields to include. Defaults to max (5) so nothing changes
+  // for anyone who never touches it.
+
+  const detailSlider = fields.detailSlider;
+  const detailTooltip = document.getElementById("detail-slider-tooltip");
+
+  function updateDetailSliderFill() {
+    const pct = (detailSlider.value / detailSlider.max) * 100;
+    detailSlider.style.background = `linear-gradient(to right, var(--ok) ${pct}%, var(--ground) ${pct}%)`;
+  }
+
+  detailSlider.addEventListener("input", () => {
+    updateDetailSliderFill();
+    detailTooltip.hidden = false;
+    if (hasGenerated) generateCaptions();
+  });
+  ["change", "mouseup", "touchend", "blur"].forEach((evt) => {
+    detailSlider.addEventListener(evt, () => { detailTooltip.hidden = true; });
+  });
+  updateDetailSliderFill();
 
   loadDraft();
   updateShapeRing();

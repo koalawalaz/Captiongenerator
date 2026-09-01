@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Caption Generator</title>
-<link rel="stylesheet" href="style.css?v=20260901g">
+<link rel="stylesheet" href="style.css?v=20260901h">
 </head>
 <body>
 
@@ -305,6 +305,25 @@
             </button>
           </div>
 
+          <div class="detail-slider-wrap">
+            <label for="detailSlider" class="detail-slider-label">Level of detail</label>
+            <div class="detail-slider-row">
+              <span class="detail-slider-end">Concise</span>
+              <input type="range" id="detailSlider" min="0" max="5" value="5" step="1">
+              <span class="detail-slider-end">Full detail</span>
+            </div>
+            <div class="detail-slider-tooltip" id="detail-slider-tooltip" hidden>
+              <div class="detail-tooltip-side">
+                <strong>Fewer sentences</strong>
+                <span>core facts only</span>
+              </div>
+              <div class="detail-tooltip-side">
+                <strong>More sentences</strong>
+                <span>reveals your optional boxes</span>
+              </div>
+            </div>
+          </div>
+
           <div class="generate-row">
             <button class="upload-btn" id="generate-btn" type="button">Generate my captions</button>
             <button type="button" id="clear-btn" class="secondary-btn">Clear all</button>
@@ -439,6 +458,6 @@
     "y": "daJuKnjCmA25zB6JpzfYuHTs3JPyrh4X3omAUWeM9RQ"
   };
 </script>
-<script src="script.js?v=20260901g"></script>
+<script src="script.js?v=20260901h"></script>
 </body>
 </html>
