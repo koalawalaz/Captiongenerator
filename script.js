@@ -8,7 +8,7 @@
     "phase", "link", "tone", "audience",
     "timeframeMode", "timeframeDate", "timeframeDateTo", "timeframeNumber", "timeframeUnit",
     "detailSlider",
-    "fsRegion", "fsStoryType", "fsQuote2", "fsQuote2Attribution", "fsWhatsNext"
+    "fsRegion", "fsStoryType", "fsContext", "fsQuote2", "fsQuote2Attribution", "fsWhatsNext"
   ];
   const fields = {};
   ids.forEach((id) => { fields[id] = document.getElementById(id); });
@@ -462,6 +462,7 @@
       headline: fsBuildHeadline(v, storyType),
       dek: fsBuildDek(v),
       opening: fsBuildOpening(v, variant),
+      context: sentenceFrom(v.fsContext),
       situationLabel: isCaseStudy ? "The problem" : "",
       situation: sentenceFrom(v.issue),
       responseLabel: isCaseStudy ? "Our response" : "",
@@ -814,6 +815,7 @@
     headline: document.getElementById("fs-headline"),
     dek: document.getElementById("fs-dek"),
     opening: document.getElementById("fs-opening"),
+    context: document.getElementById("fs-context"),
     situationLabel: document.getElementById("fs-situation-label"),
     situation: document.getElementById("fs-situation"),
     responseLabel: document.getElementById("fs-response-label"),
@@ -845,6 +847,7 @@
     fsEls.headline.textContent = story.headline;
     fsEls.dek.textContent = story.dek;
     fsEls.opening.textContent = story.opening;
+    fsEls.context.textContent = story.context;
     setFsLabel(fsEls.situationLabel, story.situationLabel);
     fsEls.situation.textContent = story.situation;
     setFsLabel(fsEls.responseLabel, story.responseLabel);
@@ -878,7 +881,7 @@
 
     const scanLabel = STORY_TYPE_LABELS[v.fsStoryType || "impact"];
     const hits = [
-      ...scanText(scanLabel, [story.opening, story.situation, story.response, story.impact, story.closing].join(" ")),
+      ...scanText(scanLabel, [story.opening, story.context, story.situation, story.response, story.impact, story.closing].join(" ")),
       ...scanText("your Quote box", v.quote),
       ...scanText("your Why box", v.why),
     ];
@@ -886,7 +889,7 @@
   }
 
   function fullStoryAsText(story) {
-    const parts = [story.kicker, story.headline, story.dek, story.opening];
+    const parts = [story.kicker, story.headline, story.dek, story.opening, story.context];
     if (story.situationLabel) parts.push(story.situationLabel.toUpperCase());
     parts.push(story.situation);
     if (story.responseLabel) parts.push(story.responseLabel.toUpperCase());
@@ -1318,6 +1321,7 @@
     fsEls.headline.textContent = "";
     fsEls.dek.textContent = "";
     fsEls.opening.textContent = "";
+    fsEls.context.textContent = "";
     setFsLabel(fsEls.situationLabel, "");
     fsEls.situation.textContent = "";
     setFsLabel(fsEls.responseLabel, "");

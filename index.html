@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Caption Generator</title>
-<link rel="stylesheet" href="style.css?v=20260902a">
+<link rel="stylesheet" href="style.css?v=20260902b">
 </head>
 <body>
 
@@ -327,6 +327,12 @@
               <p class="field-hint">Region and story type shape framing and word choice only &mdash; never facts, stats, or context beyond what you've entered.</p>
 
               <div class="field">
+                <label for="fsContext">Regional / sector context <span class="opt">optional &mdash; your own words, not generated</span></label>
+                <textarea id="fsContext" rows="2" placeholder="e.g. ongoing displacement due to conflict in the tri-border area, or the region's rainy-season access constraints"></textarea>
+                <p class="field-hint">This is the one place to add background about the region or sector &mdash; only ever your own words, never invented from the Region or Programme dropdowns above.</p>
+              </div>
+
+              <div class="field">
                 <label for="fsQuote2">Second quote / perspective <span class="opt">optional, a different voice than Quote above</span></label>
                 <textarea id="fsQuote2" rows="2" placeholder="e.g. a staff member's perspective, if the Quote above is a beneficiary's"></textarea>
               </div>
@@ -404,6 +410,7 @@
             <p class="fs-dek" id="fs-dek"></p>
 
             <p class="fs-para" id="fs-opening"></p>
+            <p class="fs-para" id="fs-context"></p>
 
             <div class="fs-para-block">
               <span class="fs-para-label" id="fs-situation-label" hidden></span>
@@ -558,6 +565,6 @@
     "y": "daJuKnjCmA25zB6JpzfYuHTs3JPyrh4X3omAUWeM9RQ"
   };
 </script>
-<script src="script.js?v=20260902a"></script>
+<script src="script.js?v=20260902b"></script>
 </body>
 </html>
