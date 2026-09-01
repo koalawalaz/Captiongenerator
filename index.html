@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Caption Generator</title>
-<link rel="stylesheet" href="style.css?v=20260901e">
+<link rel="stylesheet" href="style.css?v=20260901f">
 </head>
 <body>
 
@@ -72,7 +72,6 @@
         <div class="workspace-head-text">
           <p class="step-label">01 &middot; Gather the story</p>
           <h1 class="workspace-title">Start with what <span class="accent-serif">actually happened.</span></h1>
-          <p class="workspace-sub">A tool for humanitarian contexts: NGOs, INGOs, donors, partners, and initiatives. Turn field notes into channel-ready captions with your own voice—no hype, no content-machine copy. Keep people at the centre.</p>
         </div>
         <div class="shape-badge">
           <svg class="shape-ring" viewBox="0 0 64 64" aria-hidden="true">
@@ -163,11 +162,16 @@
                   <button type="button" class="timeframe-mode-btn" data-mode="duration" role="tab" aria-selected="false">Duration</button>
                 </div>
                 <div class="timeframe-panel" data-timeframe-panel="date">
-                  <input type="date" id="timeframeDate">
+                  <div class="timeframe-date-row">
+                    <input type="date" id="timeframeDate">
+                    <span class="timeframe-date-sep">to</span>
+                    <input type="date" id="timeframeDateTo">
+                  </div>
+                  <p class="field-hint">"To" is optional &mdash; leave blank if it's still ongoing.</p>
                 </div>
                 <div class="timeframe-panel" data-timeframe-panel="duration" hidden>
                   <div class="timeframe-duration-row">
-                    <input type="number" id="timeframeNumber" min="1" placeholder="e.g. 14">
+                    <select id="timeframeNumber"></select>
                     <select id="timeframeUnit">
                       <option value="days">Days</option>
                       <option value="months" selected>Months</option>
@@ -322,6 +326,12 @@
               </div>
             </div>
             <div class="output-text" id="meta-output"></div>
+            <div class="sentence-slider">
+              <div class="sentence-slider-track">
+                <div class="sentence-slider-zone" id="meta-slider-zone"></div>
+                <div class="sentence-slider-marker" id="meta-slider-marker"></div>
+              </div>
+            </div>
             <div class="meter-row">
               <span class="meter" id="meta-meter"></span>
               <span class="meter-target">target: 2&ndash;3 sentences</span>
@@ -341,6 +351,12 @@
               </div>
             </div>
             <div class="output-text" id="linkedin-output"></div>
+            <div class="sentence-slider">
+              <div class="sentence-slider-track">
+                <div class="sentence-slider-zone" id="linkedin-slider-zone"></div>
+                <div class="sentence-slider-marker" id="linkedin-slider-marker"></div>
+              </div>
+            </div>
             <div class="meter-row">
               <span class="meter" id="linkedin-meter"></span>
               <span class="meter-target">target: 3&ndash;5+ sentences, with numbers</span>
@@ -360,6 +376,12 @@
               </div>
             </div>
             <div class="output-text" id="website-output"></div>
+            <div class="sentence-slider">
+              <div class="sentence-slider-track">
+                <div class="sentence-slider-zone" id="website-slider-zone"></div>
+                <div class="sentence-slider-marker" id="website-slider-marker"></div>
+              </div>
+            </div>
             <div class="meter-row">
               <span class="meter" id="website-meter"></span>
               <span class="meter-target">target: 5&ndash;8+ sentences, full story</span>
@@ -417,6 +439,6 @@
     "y": "daJuKnjCmA25zB6JpzfYuHTs3JPyrh4X3omAUWeM9RQ"
   };
 </script>
-<script src="script.js?v=20260901e"></script>
+<script src="script.js?v=20260901f"></script>
 </body>
 </html>

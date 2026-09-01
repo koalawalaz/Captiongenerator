@@ -6,7 +6,7 @@
     "howmany", "timeframe", "results", "donor", "partner",
     "donorHandle", "partnerHandle", "orgHandle", "programme",
     "phase", "link", "tone",
-    "timeframeMode", "timeframeDate", "timeframeNumber", "timeframeUnit"
+    "timeframeMode", "timeframeDate", "timeframeDateTo", "timeframeNumber", "timeframeUnit"
   ];
   const fields = {};
   ids.forEach((id) => { fields[id] = document.getElementById(id); });
@@ -25,6 +25,16 @@
     meta: document.getElementById("meta-feedback"),
     linkedin: document.getElementById("linkedin-feedback"),
     website: document.getElementById("website-feedback"),
+  };
+  const sliderZones = {
+    meta: document.getElementById("meta-slider-zone"),
+    linkedin: document.getElementById("linkedin-slider-zone"),
+    website: document.getElementById("website-slider-zone"),
+  };
+  const sliderMarkers = {
+    meta: document.getElementById("meta-slider-marker"),
+    linkedin: document.getElementById("linkedin-slider-marker"),
+    website: document.getElementById("website-slider-marker"),
   };
   const photoReminder = document.getElementById("photo-reminder");
   const scanCard = document.getElementById("scan-card");
@@ -545,6 +555,21 @@
     }
   }
 
+  function setSentenceSlider(zoneEl, markerEl, count, min, max) {
+    if (!zoneEl || !markerEl) return;
+    const scaleMax = Math.max(max * 1.5, max + 3);
+    const zoneLeftPct = (min / scaleMax) * 100;
+    const zoneWidthPct = ((max - min) / scaleMax) * 100;
+    zoneEl.style.left = `${zoneLeftPct}%`;
+    zoneEl.style.width = `${zoneWidthPct}%`;
+
+    markerEl.classList.remove("in-range", "warn", "visible");
+    if (count === 0) return;
+    const markerPct = Math.min((count / scaleMax) * 100, 100);
+    markerEl.style.left = `${markerPct}%`;
+    markerEl.classList.add("visible", count < min || count > max ? "warn" : "in-range");
+  }
+
   function generateCaptions() {
     const v = {};
     ids.forEach((id) => { v[id] = val(id); });
@@ -569,6 +594,10 @@
     setSentenceFeedback(feedbacks.meta, metaCount, 2, 3);
     setSentenceFeedback(feedbacks.linkedin, linkedinCount, 3, 5);
     setSentenceFeedback(feedbacks.website, websiteCount, 5, 8);
+
+    setSentenceSlider(sliderZones.meta, sliderMarkers.meta, metaCount, 2, 3);
+    setSentenceSlider(sliderZones.linkedin, sliderMarkers.linkedin, linkedinCount, 3, 5);
+    setSentenceSlider(sliderZones.website, sliderMarkers.website, websiteCount, 5, 8);
 
     photoReminder.hidden = !websiteBase;
 
@@ -660,6 +689,7 @@
     familySelect.value = "";
     populateProgrammeTypes("");
     fields.timeframeUnit.value = "months";
+    populateTimeframeNumberOptions("months");
     setTimeframeMode("date");
     variantIndex.meta = 0;
     variantIndex.linkedin = 0;
@@ -1062,11 +1092,22 @@
     });
   }
 
-  function formatTimeframeDate(dateStr) {
-    if (!dateStr) return "";
+  function parseDateInput(dateStr) {
+    if (!dateStr) return null;
     const d = new Date(dateStr + "T00:00:00");
-    if (isNaN(d.getTime())) return "";
-    return `${MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}`;
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  function formatTimeframeDate(fromStr, toStr) {
+    const from = parseDateInput(fromStr);
+    if (!from) return "";
+    const to = parseDateInput(toStr);
+    if (!to) return `${MONTH_NAMES[from.getMonth()]} ${from.getFullYear()}`;
+    if (from.getFullYear() === to.getFullYear()) {
+      if (from.getMonth() === to.getMonth()) return `${MONTH_NAMES[from.getMonth()]} ${from.getFullYear()}`;
+      return `${MONTH_NAMES[from.getMonth()]}–${MONTH_NAMES[to.getMonth()]} ${from.getFullYear()}`;
+    }
+    return `${MONTH_NAMES[from.getMonth()]} ${from.getFullYear()} – ${MONTH_NAMES[to.getMonth()]} ${to.getFullYear()}`;
   }
 
   function formatTimeframeDuration(numStr, unit) {
@@ -1080,11 +1121,27 @@
     return `${n} ${labels[unit] || labels.months} ago`;
   }
 
+  const TIMEFRAME_NUMBER_COUNTS = { days: 31, months: 12, years: 30 };
+
+  function populateTimeframeNumberOptions(unit) {
+    const max = TIMEFRAME_NUMBER_COUNTS[unit] || 12;
+    const select = fields.timeframeNumber;
+    const prevValue = select.value;
+    select.innerHTML = "";
+    for (let i = 1; i <= max; i++) {
+      const opt = document.createElement("option");
+      opt.value = String(i);
+      opt.textContent = String(i);
+      select.appendChild(opt);
+    }
+    if (prevValue && Number(prevValue) <= max) select.value = prevValue;
+  }
+
   function updateTimeframeValue() {
     const mode = fields.timeframeMode.value || "date";
     const computed = mode === "duration"
       ? formatTimeframeDuration(fields.timeframeNumber.value, fields.timeframeUnit.value)
-      : formatTimeframeDate(fields.timeframeDate.value);
+      : formatTimeframeDate(fields.timeframeDate.value, fields.timeframeDateTo.value);
     if (fields.timeframe.value !== computed) {
       fields.timeframe.value = computed;
       fields.timeframe.dispatchEvent(new Event("input"));
@@ -1099,8 +1156,15 @@
     });
   });
   fields.timeframeDate.addEventListener("input", updateTimeframeValue);
+  fields.timeframeDateTo.addEventListener("input", updateTimeframeValue);
   fields.timeframeNumber.addEventListener("input", updateTimeframeValue);
-  fields.timeframeUnit.addEventListener("change", updateTimeframeValue);
+  fields.timeframeUnit.addEventListener("change", () => {
+    populateTimeframeNumberOptions(fields.timeframeUnit.value);
+    updateTimeframeValue();
+    scheduleDraftSave();
+  });
+
+  populateTimeframeNumberOptions(fields.timeframeUnit.value);
 
   // ---------- autosave draft to localStorage ----------
   //
@@ -1147,10 +1211,12 @@
       return;
     }
     ids.forEach((id) => {
-      if (id === "programme") return;
+      if (id === "programme" || id === "timeframeNumber") return;
       if (typeof draft[id] === "string" && fields[id]) fields[id].value = draft[id];
     });
     if (draft.programme) restoreProgrammeSelection(draft.programme);
+    populateTimeframeNumberOptions(fields.timeframeUnit.value);
+    if (typeof draft.timeframeNumber === "string") fields.timeframeNumber.value = draft.timeframeNumber;
     setTimeframeMode(draft.timeframeMode || "date");
   }
 
