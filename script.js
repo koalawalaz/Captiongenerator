@@ -5,7 +5,7 @@
     "who", "where", "issue", "involvement", "changed", "why", "quote",
     "howmany", "timeframe", "results", "donor", "partner",
     "donorHandle", "partnerHandle", "orgHandle", "programme",
-    "phase", "link", "tone",
+    "phase", "link", "tone", "audience",
     "timeframeMode", "timeframeDate", "timeframeDateTo", "timeframeNumber", "timeframeUnit",
     "detailSlider"
   ];
@@ -218,7 +218,7 @@
     return joinSentences(sentences);
   }
 
-  function buildLinkedin(v, variant, tone = "balanced", detailLevel = MAX_DETAIL_LEVEL) {
+  function buildLinkedin(v, variant, tone = "balanced", detailLevel = MAX_DETAIL_LEVEL, audience = "donors") {
     const sentences = [];
     const timeframeLeadin = pick(TIMEFRAME_LEADINS, variant);
     const donorLeadin = pick(getDonorLeadins(tone), variant);
@@ -239,6 +239,7 @@
     s1 = clean(upper1(s1)) + ".";
     sentences.push(s1);
 
+    let donorChangedSentence = null;
     if (detailLevel >= 1 && (v.donor || v.changed)) {
       let s2 = "";
       if (v.donor) {
@@ -248,10 +249,20 @@
       }
       s2 += v.changed ? (v.donor ? lower1(v.changed) : upper1(v.changed)) : "";
       s2 = clean(s2) + ".";
-      if (s2 !== ".") sentences.push(s2);
+      if (s2 !== ".") donorChangedSentence = s2;
+    }
+    const resultsSentence = detailLevel >= 2 && v.results ? sentenceFrom(v.results) : null;
+
+    // Donor/funder audiences read numbers before narrative; everyone else
+    // gets the "what changed" story first, then the data backing it up.
+    if (audience === "donors") {
+      if (resultsSentence) sentences.push(resultsSentence);
+      if (donorChangedSentence) sentences.push(donorChangedSentence);
+    } else {
+      if (donorChangedSentence) sentences.push(donorChangedSentence);
+      if (resultsSentence) sentences.push(resultsSentence);
     }
 
-    if (detailLevel >= 2 && v.results) sentences.push(sentenceFrom(v.results));
     if (detailLevel >= 3 && v.why) sentences.push(sentenceFrom(v.why));
     if (detailLevel >= 4 && v.phase) sentences.push(sentenceFrom(v.phase));
     if (detailLevel >= 5 && v.link) sentences.push(`${linkLeadin} ${v.link}.`);
@@ -259,7 +270,7 @@
     return joinSentences(sentences);
   }
 
-  function buildWebsite(v, variant, tone = "balanced", detailLevel = MAX_DETAIL_LEVEL) {
+  function buildWebsite(v, variant, tone = "balanced", detailLevel = MAX_DETAIL_LEVEL, audience = "donors") {
     const sentences = [];
     const whereLeadin = WHERE_LEADINS[variant % WHERE_LEADINS.length];
     const timeframeLeadin = pick(TIMEFRAME_LEADINS, variant);
@@ -277,8 +288,18 @@
     if (v.issue) sentences.push(sentenceFrom(v.issue));
     if (detailLevel >= 1 && v.why) sentences.push(sentenceFrom(v.why));
 
-    if (detailLevel >= 2 && v.donor) sentences.push(pick(buildDonorCreditTails(tone), variant)(v.donor));
-    if (detailLevel >= 3 && v.partner) sentences.push(pick(PARTNER_PHRASES, variant)(v.partner));
+    const donorSentence = detailLevel >= 2 && v.donor ? pick(buildDonorCreditTails(tone), variant)(v.donor) : null;
+    const partnerSentence = detailLevel >= 3 && v.partner ? pick(PARTNER_PHRASES, variant)(v.partner) : null;
+
+    // Local-partner/community audiences read partner credit before donor
+    // credit; everyone else sees the funder credited first (the default).
+    if (audience === "partners") {
+      if (partnerSentence) sentences.push(partnerSentence);
+      if (donorSentence) sentences.push(donorSentence);
+    } else {
+      if (donorSentence) sentences.push(donorSentence);
+      if (partnerSentence) sentences.push(partnerSentence);
+    }
     if (v.involvement) sentences.push(sentenceFrom(v.involvement));
     if (v.changed) sentences.push(sentenceFrom(v.changed));
 
@@ -589,11 +610,12 @@
     ids.forEach((id) => { v[id] = val(id); });
 
     const tone = v.tone || "balanced";
+    const audience = v.audience || "donors";
     const detailLevel = parseInt(v.detailSlider, 10);
     const level = isNaN(detailLevel) ? MAX_DETAIL_LEVEL : detailLevel;
     const metaBase = buildMeta(v, variantIndex.meta, tone, level);
-    const linkedinBase = buildLinkedin(v, variantIndex.linkedin, tone, level);
-    const websiteBase = buildWebsite(v, variantIndex.website, tone, level);
+    const linkedinBase = buildLinkedin(v, variantIndex.linkedin, tone, level, audience);
+    const websiteBase = buildWebsite(v, variantIndex.website, tone, level, audience);
 
     outputs.meta.textContent = appendTags(metaBase, v, true);
     outputs.linkedin.textContent = appendTags(linkedinBase, v, true);
@@ -709,6 +731,8 @@
     setTimeframeMode("date");
     fields.detailSlider.value = String(MAX_DETAIL_LEVEL);
     updateDetailSliderFill();
+    fields.tone.value = "balanced";
+    fields.audience.value = "donors";
     variantIndex.meta = 0;
     variantIndex.linkedin = 0;
     variantIndex.website = 0;
@@ -1246,6 +1270,10 @@
   });
 
   fields.tone.addEventListener("change", () => {
+    if (hasGenerated) generateCaptions();
+  });
+
+  fields.audience.addEventListener("change", () => {
     if (hasGenerated) generateCaptions();
   });
 
