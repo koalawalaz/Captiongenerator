@@ -215,6 +215,53 @@
 
   // ---------- programme -> hashtag map ----------
 
+  const PROGRAMME_GROUPS = [
+    { id: "protection", options: [
+      { value: "pim", label: "Protection Information Management (PIM)" },
+      { value: "cp", label: "Child Protection (CP)" },
+      { value: "cbp", label: "Community-Based Protection (CBP)" },
+      { value: "gbv", label: "Prevention of and response to Gender-Based Violence (GBV)" },
+      { value: "legal", label: "Legal Aid" },
+      { value: "mhpss", label: "Mental Health and Psycho-Social Support (MHPSS)" },
+      { value: "protcoord", label: "Support to Protection Coordination (Co-Coordination – Co-Leadership)" },
+    ]},
+    { id: "economic", options: [
+      { value: "food", label: "Food Security" },
+      { value: "finclusion", label: "Financial Inclusion" },
+      { value: "livelihoods", label: "Decent Livelihoods" },
+    ]},
+    { id: "hdp", options: [
+      { value: "eore", label: "Explosive Ordnance Risk Education" },
+      { value: "landrelease_nts", label: "Land Release – NTS/TS/Marking" },
+      { value: "landrelease_clearance", label: "Land Release – Manual Clearance/Battle Area Clearance/Explosive Ordnance Disposal" },
+      { value: "victimassist", label: "Victim Assistance" },
+      { value: "peacebuilding", label: "Peacebuilding" },
+    ]},
+    { id: "shelter", options: [
+      { value: "nfi", label: "Household Items (NFIs)" },
+      { value: "wash", label: "Water, Sanitation and Hygiene" },
+      { value: "shelter", label: "Shelter and Settlements" },
+      { value: "infrastructure", label: "Infrastructure" },
+    ]},
+    { id: "innovation", options: [
+      { value: "anticipatory", label: "Anticipatory Action" },
+      { value: "youthemployment", label: "Youth Employment" },
+      { value: "digital", label: "Digital Innovation" },
+      { value: "privatesector", label: "Private Sector Engagement" },
+      { value: "globalevents", label: "Global Events" },
+      { value: "climatefinance", label: "Innovation Financing for Climate Resilience in Displacement" },
+      { value: "standby", label: "Standby Roster" },
+    ]},
+    { id: "csoe", options: [
+      { value: "diaspora", label: "Diaspora Programme" },
+      { value: "csostrategy", label: "Global Civil Society Engagement Strategy" },
+    ]},
+  ];
+  const PROGRAMME_VALUE_TO_FAMILY = {};
+  PROGRAMME_GROUPS.forEach((group) => {
+    group.options.forEach((opt) => { PROGRAMME_VALUE_TO_FAMILY[opt.value] = group.id; });
+  });
+
   const PROGRAM_HASHTAGS = {
     pim: ["PIM"],
     cp: ["ChildProtection"],
@@ -526,12 +573,18 @@
   });
 
   document.getElementById("clear-btn").addEventListener("click", () => {
-    ids.forEach((id) => { fields[id].value = fields[id].tagName === "SELECT" ? "na" : ""; });
+    ids.forEach((id) => { if (id !== "programme") fields[id].value = ""; });
+    familySelect.value = "";
+    populateProgrammeTypes("");
     variantIndex.meta = 0;
     variantIndex.linkedin = 0;
     variantIndex.website = 0;
     hasGenerated = false;
     generateCaptions();
+    clearDraft();
+    updateShapeRing();
+    updateStoryTitle();
+    updateDraftBadge();
   });
 
   async function copyText(text) {
@@ -766,8 +819,201 @@
     hasGenerated = true;
     generateCaptions();
     renderStatus();
+    updateDraftBadge();
   });
 
   checkStoredLicense();
+
+  // ---------- channel tabs + wand quick-regenerate ----------
+
+  let activeChannelTab = "meta";
+  const tabButtons = document.querySelectorAll(".tab-btn[data-tab]");
+  const tabPanels = document.querySelectorAll(".channel-card[data-tab-panel]");
+
+  function setActiveTab(tab) {
+    activeChannelTab = tab;
+    tabButtons.forEach((btn) => {
+      const isActive = btn.getAttribute("data-tab") === tab;
+      btn.classList.toggle("active", isActive);
+      btn.setAttribute("aria-selected", isActive ? "true" : "false");
+    });
+    tabPanels.forEach((panel) => {
+      const isActive = panel.getAttribute("data-tab-panel") === tab;
+      panel.classList.toggle("active", isActive);
+      panel.hidden = !isActive;
+    });
+  }
+  tabButtons.forEach((btn) => {
+    btn.addEventListener("click", () => setActiveTab(btn.getAttribute("data-tab")));
+  });
+
+  const wandBtn = document.getElementById("wand-regen-btn");
+  wandBtn.addEventListener("click", () => {
+    const activeRegen = document.querySelector(`.regen-btn[data-channel="${activeChannelTab}"]`);
+    if (activeRegen) activeRegen.click();
+  });
+
+  // ---------- draft badge (reflects whether captions have been generated yet) ----------
+
+  const draftBadge = document.getElementById("draft-badge");
+  function updateDraftBadge() {
+    draftBadge.textContent = hasGenerated ? "Generated" : "Draft";
+    draftBadge.classList.toggle("is-ready", hasGenerated);
+  }
+  updateDraftBadge();
+
+  // ---------- story shape counter ----------
+  //
+  // A quick, honest sense of how filled-in the core story is — counts only
+  // the 9 narrative boxes (not the optional mentions/tags/donor/partner
+  // attribution fields below them).
+
+  const SHAPE_FIELD_IDS = [
+    "who", "where", "issue", "involvement", "changed",
+    "why", "quote", "howmany", "timeframe"
+  ];
+  const shapeRingFill = document.getElementById("shape-ring-fill");
+  const shapeCount = document.getElementById("shape-count");
+  const shapeSub = document.getElementById("shape-sub");
+  const SHAPE_RING_CIRCUMFERENCE = 2 * Math.PI * 27;
+
+  function updateShapeRing() {
+    const filled = SHAPE_FIELD_IDS.filter((id) => val(id)).length;
+    const total = SHAPE_FIELD_IDS.length;
+    shapeCount.textContent = `${filled}/${total}`;
+    shapeRingFill.setAttribute(
+      "stroke-dashoffset",
+      String(SHAPE_RING_CIRCUMFERENCE * (1 - filled / total))
+    );
+    if (filled === 0) {
+      shapeSub.textContent = "A beginning is enough.";
+    } else if (filled < total) {
+      shapeSub.textContent = "Add more when you can.";
+    } else {
+      shapeSub.textContent = "The full shape is here.";
+    }
+  }
+  SHAPE_FIELD_IDS.forEach((id) => {
+    fields[id].addEventListener("input", updateShapeRing);
+  });
+
+  // ---------- breadcrumb story title ----------
+
+  const storyTitleEl = document.getElementById("story-title");
+  function updateStoryTitle() {
+    const who = val("who");
+    storyTitleEl.textContent = who ? firstName(who) + "'s story" : "Untitled field story";
+  }
+  fields.who.addEventListener("input", updateStoryTitle);
+
+  // ---------- programme family -> type cascading dropdown ----------
+
+  const familySelect = document.getElementById("programmeFamily");
+  const typeSelect = fields.programme;
+
+  function populateProgrammeTypes(familyId, selectedValue) {
+    typeSelect.innerHTML = "";
+    const group = PROGRAMME_GROUPS.find((g) => g.id === familyId);
+    if (!group) {
+      typeSelect.disabled = true;
+      const opt = document.createElement("option");
+      opt.value = "";
+      opt.textContent = "Choose a family first";
+      opt.selected = true;
+      typeSelect.appendChild(opt);
+      return;
+    }
+    typeSelect.disabled = false;
+    const placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.textContent = "Choose a type";
+    typeSelect.appendChild(placeholder);
+    group.options.forEach(({ value, label }) => {
+      const opt = document.createElement("option");
+      opt.value = value;
+      opt.textContent = label;
+      typeSelect.appendChild(opt);
+    });
+    if (selectedValue) typeSelect.value = selectedValue;
+  }
+
+  familySelect.addEventListener("change", () => {
+    populateProgrammeTypes(familySelect.value);
+    scheduleDraftSave();
+  });
+
+  function restoreProgrammeSelection(value) {
+    const family = PROGRAMME_VALUE_TO_FAMILY[value];
+    if (!family) return;
+    familySelect.value = family;
+    populateProgrammeTypes(family, value);
+  }
+
+  // ---------- new story (sidebar nav) ----------
+
+  document.getElementById("nav-new-story").addEventListener("click", () => {
+    document.getElementById("clear-btn").click();
+  });
+
+  // ---------- autosave draft to localStorage ----------
+  //
+  // Only ever written to this browser's own storage — nothing leaves the
+  // device. Makes the "Autosaved locally" indicator in the top bar true
+  // rather than decorative.
+
+  const DRAFT_KEY = "captiongen_story_draft";
+  let draftSaveTimer = null;
+
+  function saveDraft() {
+    const draft = {};
+    ids.forEach((id) => { draft[id] = fields[id].value; });
+    try {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+    } catch (e) {
+      // storage unavailable (private browsing, quota) — fail silently
+    }
+  }
+  function scheduleDraftSave() {
+    clearTimeout(draftSaveTimer);
+    draftSaveTimer = setTimeout(saveDraft, 400);
+  }
+  function clearDraft() {
+    clearTimeout(draftSaveTimer);
+    try {
+      localStorage.removeItem(DRAFT_KEY);
+    } catch (e) {
+      // ignore
+    }
+  }
+  function loadDraft() {
+    let stored;
+    try {
+      stored = localStorage.getItem(DRAFT_KEY);
+    } catch (e) {
+      return;
+    }
+    if (!stored) return;
+    let draft;
+    try {
+      draft = JSON.parse(stored);
+    } catch (e) {
+      return;
+    }
+    ids.forEach((id) => {
+      if (id === "programme") return;
+      if (typeof draft[id] === "string" && fields[id]) fields[id].value = draft[id];
+    });
+    if (draft.programme) restoreProgrammeSelection(draft.programme);
+  }
+
+  ids.forEach((id) => {
+    const el = fields[id];
+    el.addEventListener("input", scheduleDraftSave);
+    if (el.tagName === "SELECT") el.addEventListener("change", scheduleDraftSave);
+  });
+
+  loadDraft();
+  updateShapeRing();
+  updateStoryTitle();
 
 })();
