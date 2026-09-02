@@ -1204,11 +1204,17 @@ input[type="range"]::-moz-range-track{
   box-shadow:0 24px 60px rgba(0,0,0,0.35);
 }
 .guide-panel-head{
+  position:sticky;
+  top:0;
+  z-index:1;
+  background:var(--paper);
   display:flex;
   align-items:flex-start;
   justify-content:space-between;
   gap:12px;
-  margin-bottom:14px;
+  padding-bottom:12px;
+  margin-bottom:12px;
+  border-bottom:1px solid var(--line);
 }
 .guide-panel-head h2{
   margin:0;
