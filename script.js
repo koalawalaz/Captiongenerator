@@ -970,9 +970,23 @@
 
   // ---------- events ----------
 
-  document.getElementById("toggle-guide").addEventListener("click", () => {
-    const guide = document.getElementById("guide");
-    guide.hidden = !guide.hidden;
+  const guidePanelWrap = document.getElementById("guide-panel-wrap");
+  const guideCloseBtn = document.getElementById("guide-close-btn");
+
+  function openGuidePanel() {
+    guidePanelWrap.hidden = false;
+  }
+  function closeGuidePanel() {
+    guidePanelWrap.hidden = true;
+  }
+
+  document.getElementById("toggle-guide").addEventListener("click", openGuidePanel);
+  guideCloseBtn.addEventListener("click", closeGuidePanel);
+  guidePanelWrap.addEventListener("click", (e) => {
+    if (e.target === guidePanelWrap) closeGuidePanel();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !guidePanelWrap.hidden) closeGuidePanel();
   });
 
   function clearAllFields() {

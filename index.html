@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Caption Generator</title>
-<link rel="stylesheet" href="style.css?v=20260902f">
+<link rel="stylesheet" href="style.css?v=20260902g">
 </head>
 <body>
 
@@ -114,27 +114,6 @@
             <p class="shape-sub" id="shape-sub">A beginning is enough.</p>
           </div>
         </div>
-      </div>
-
-      <div id="guide" class="guide" hidden>
-        <p>Answer each box in a full clause, the way you'd say it out loud &mdash; not a single word. The generator stitches your own sentences together; it doesn't invent detail.</p>
-        <table class="guide-table">
-          <thead><tr><th>#</th><th>Question</th><th>What to write</th></tr></thead>
-          <tbody>
-            <tr><td>1</td><td>Who</td><td>Name or pseudonym, and age or role.</td></tr>
-            <tr><td>2</td><td>Where</td><td>City, country &mdash; not just "a camp" or "the field".</td></tr>
-            <tr><td>3</td><td>What &ndash; the issue</td><td>What was wrong before.</td></tr>
-            <tr><td>4</td><td>What &ndash; involvement</td><td>Our involvement.</td></tr>
-            <tr><td>5</td><td>What &ndash; changed</td><td>After our involvement, what happened.</td></tr>
-            <tr><td>6</td><td>Why</td><td>Why this matters now.</td></tr>
-            <tr><td>7</td><td>Quote</td><td>One sentence in their own words.</td></tr>
-            <tr><td>8</td><td>How many</td><td>People, households reached.</td></tr>
-            <tr><td>9</td><td>Timeframe</td><td>When it started and for how long.</td></tr>
-            <tr><td>10</td><td>Results</td><td>Percentage, before and after.</td></tr>
-            <tr><td>11</td><td>Donor</td><td>Donor's name.</td></tr>
-            <tr><td>12</td><td>Partners</td><td>Local partner name.</td></tr>
-          </tbody>
-        </table>
       </div>
 
       <div class="workspace-grid">
@@ -586,6 +565,35 @@
   </footer>
 </div>
 
+<div class="guide-panel-wrap" id="guide-panel-wrap" hidden>
+  <section class="panel guide-panel">
+    <div class="guide-panel-head">
+      <h2>What goes in each box?</h2>
+      <button type="button" class="guide-close-btn" id="guide-close-btn" aria-label="Close">&times;</button>
+    </div>
+    <div class="guide">
+      <p>Answer each box in a full clause, the way you'd say it out loud &mdash; not a single word. The generator stitches your own sentences together; it doesn't invent detail.</p>
+      <table class="guide-table">
+        <thead><tr><th>#</th><th>Question</th><th>What to write</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>Who</td><td>Name or pseudonym, and age or role.</td></tr>
+          <tr><td>2</td><td>Where</td><td>City, country &mdash; not just "a camp" or "the field".</td></tr>
+          <tr><td>3</td><td>What &ndash; the issue</td><td>What was wrong before.</td></tr>
+          <tr><td>4</td><td>What &ndash; involvement</td><td>Our involvement.</td></tr>
+          <tr><td>5</td><td>What &ndash; changed</td><td>After our involvement, what happened.</td></tr>
+          <tr><td>6</td><td>Why</td><td>Why this matters now.</td></tr>
+          <tr><td>7</td><td>Quote</td><td>One sentence in their own words.</td></tr>
+          <tr><td>8</td><td>How many</td><td>People, households reached.</td></tr>
+          <tr><td>9</td><td>Timeframe</td><td>When it started and for how long.</td></tr>
+          <tr><td>10</td><td>Results</td><td>Percentage, before and after.</td></tr>
+          <tr><td>11</td><td>Donor</td><td>Donor's name.</td></tr>
+          <tr><td>12</td><td>Partners</td><td>Local partner name.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
 <div class="redeem-panel-wrap" id="redeem-panel-wrap" hidden>
   <section class="panel redeem-panel">
     <h2>Enter your license key</h2>
@@ -618,6 +626,6 @@
     "y": "daJuKnjCmA25zB6JpzfYuHTs3JPyrh4X3omAUWeM9RQ"
   };
 </script>
-<script src="script.js?v=20260902f"></script>
+<script src="script.js?v=20260902g"></script>
 </body>
 </html>
