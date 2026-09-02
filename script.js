@@ -654,7 +654,11 @@
     return out;
   }
 
-  // ---------- cliché / AI-tell scanner ----------
+  // ---------- cliché / dignity / jargon / protection scanner ----------
+  //
+  // Runs on the generated output plus the raw Quote/Why boxes, and flags
+  // wording worth a second look — never rewrites anything itself. Every
+  // tier is a nudge back to the user's own words, not an invented fix.
 
   const HARD_PHRASES = [
     "in today's world", "in today's fast-paced", "delve into", "delve",
@@ -673,42 +677,106 @@
 
   const SOFT_WORDS = [
     "vulnerable", "resilient", "resilience", "empower", "empowering",
-    "voiceless", "underprivileged", "less fortunate", "give back",
+    "underprivileged", "less fortunate", "give back",
     "make an impact", "champion", "passionate about"
   ];
+
+  // Words that get their own tailored note instead of the generic
+  // soft-word one.
+  const NUANCED_WORDS = {
+    voiceless: 'people have voices; institutions fail to listen &mdash; try "unheard," "excluded," or "amplifying local voices" instead',
+  };
+
+  // Poverty-porn / pity framing: depicts people as passive and hopeless
+  // rather than active participants in their own recovery.
+  const PITY_WORDS = [
+    "hopeless", "desperate", "wretched", "pitiful", "helpless",
+    "have nothing", "has nothing"
+  ];
+
+  // Savior-complex language: frames aid as heroic rescue rather than
+  // solidarity and rights.
+  const SAVIOR_WORDS = [
+    "hero", "heroes", "heroic", "swoop in", "swooped in", "rescue", "rescued"
+  ];
+
+  // Sector jargon acronyms, matched case-sensitively (their lowercase
+  // forms are ordinary English words, e.g. "wash the dishes") — each
+  // carries its own plain-language expansion.
+  const JARGON_TERMS = {
+    IDP: "displaced person",
+    IDPs: "displaced people or families",
+    WASH: "clean water, sanitation, and hygiene",
+    NFI: "essential household items",
+    NFIs: "essential household items",
+    GBV: "gender-based violence",
+  };
+
+  // Protection/consent triggers. The app never invents identifying
+  // detail, but if the user's OWN words include one of these, it's
+  // worth a reminder to double-check consent before publishing.
+  const PROTECTION_WORDS = ["orphan", "orphans", "orphaned", "orphanage"];
+  const PROTECTION_LOCATION_RE = /\b(shelter|camp|block|tent|unit|plot)\s*#?\s*[a-z]?-?\d+/i;
+
+  const TIER_NOTES = {
+    hard: "reads like stock AI copy — cut it or replace with a concrete detail",
+    soft: "overused nonprofit shorthand — consider naming the specific detail instead",
+    pity: "risks pity framing — show what the person is doing or deciding, not just their suffering",
+    savior: "risks a savior narrative — frame this as solidarity or rights, not benevolent rescue",
+    protection: "verify informed consent was obtained before publishing this identifying detail, or generalize it (e.g. a shelter block instead of a specific number)",
+  };
 
   function scanText(label, text) {
     const hits = [];
     if (!text) return hits;
     const lower = text.toLowerCase();
+
     HARD_PHRASES.forEach((phrase) => {
-      if (lower.includes(phrase)) {
-        hits.push({ phrase, label, tier: "hard" });
-      }
+      if (lower.includes(phrase)) hits.push({ phrase, label, tier: "hard" });
     });
     SOFT_WORDS.forEach((word) => {
-      const re = new RegExp(`\\b${word}\\b`, "i");
-      if (re.test(text)) {
-        hits.push({ phrase: word, label, tier: "soft" });
+      if (new RegExp(`\\b${word}\\b`, "i").test(text)) hits.push({ phrase: word, label, tier: "soft" });
+    });
+    Object.keys(NUANCED_WORDS).forEach((word) => {
+      if (new RegExp(`\\b${word}\\b`, "i").test(text)) {
+        hits.push({ phrase: word, label, tier: "soft", note: NUANCED_WORDS[word] });
       }
     });
+    PITY_WORDS.forEach((word) => {
+      if (new RegExp(`\\b${word}\\b`, "i").test(text)) hits.push({ phrase: word, label, tier: "pity" });
+    });
+    SAVIOR_WORDS.forEach((word) => {
+      if (new RegExp(`\\b${word}\\b`, "i").test(text)) hits.push({ phrase: word, label, tier: "savior" });
+    });
+    Object.keys(JARGON_TERMS).forEach((term) => {
+      if (new RegExp(`\\b${term}\\b`).test(text)) {
+        hits.push({ phrase: term, label, tier: "jargon", note: `spell out for a public audience &mdash; try "${JARGON_TERMS[term]}"` });
+      }
+    });
+    PROTECTION_WORDS.forEach((word) => {
+      if (new RegExp(`\\b${word}\\b`, "i").test(text)) hits.push({ phrase: word, label, tier: "protection" });
+    });
+    const locMatch = text.match(PROTECTION_LOCATION_RE);
+    if (locMatch) hits.push({ phrase: locMatch[0], label, tier: "protection" });
+
     return hits;
   }
 
   function renderScan(allHits) {
     if (!allHits.length) {
       scanCard.hidden = true;
+      scanCard.classList.remove("has-protection");
       scanList.innerHTML = "";
       return;
     }
     scanCard.hidden = false;
+    scanCard.classList.toggle("has-protection", allHits.some((h) => h.tier === "protection"));
     scanList.innerHTML = "";
     allHits.forEach((hit) => {
       const li = document.createElement("li");
-      const tierNote = hit.tier === "hard"
-        ? "reads like stock AI copy — cut it or replace with a concrete detail"
-        : "overused nonprofit shorthand — consider naming the specific detail instead";
-      li.innerHTML = `<span class="flag-word">${hit.phrase}</span> in ${hit.label} &mdash; <span class="flag-loc">${tierNote}</span>`;
+      const note = hit.note || TIER_NOTES[hit.tier] || "";
+      const cls = hit.tier === "protection" || hit.tier === "jargon" ? `flag-word flag-${hit.tier}` : "flag-word";
+      li.innerHTML = `<span class="${cls}">${hit.phrase}</span> in ${hit.label} &mdash; <span class="flag-loc">${note}</span>`;
       scanList.appendChild(li);
     });
   }
