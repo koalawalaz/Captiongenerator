@@ -801,7 +801,7 @@
     const hits = [
       ...scanText("Instagram/Facebook", metaBase),
       ...scanText("LinkedIn", linkedinBase),
-      ...scanText("Website", websiteBase),
+      ...scanText("Website story", websiteBase),
       ...scanText("your Quote box", v.quote),
       ...scanText("your Why box", v.why),
     ];
