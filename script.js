@@ -762,6 +762,28 @@
     return hits;
   }
 
+  // The same field (e.g. Who) is stitched into all three caption
+  // channels, so the same word often shows up in every channel's
+  // generated text. Merge those into one line listing every channel
+  // together, rather than repeating an identical note 3 times.
+  function dedupeHits(allHits) {
+    const merged = [];
+    const index = new Map();
+    allHits.forEach((hit) => {
+      const note = hit.note || TIER_NOTES[hit.tier] || "";
+      const key = `${hit.tier}::${hit.phrase.toLowerCase()}::${note}`;
+      const existing = index.get(key);
+      if (existing) {
+        if (!existing.labels.includes(hit.label)) existing.labels.push(hit.label);
+      } else {
+        const entry = { phrase: hit.phrase, tier: hit.tier, note, labels: [hit.label] };
+        index.set(key, entry);
+        merged.push(entry);
+      }
+    });
+    return merged;
+  }
+
   function renderScan(allHits) {
     if (!allHits.length) {
       scanCard.hidden = true;
@@ -772,11 +794,10 @@
     scanCard.hidden = false;
     scanCard.classList.toggle("has-protection", allHits.some((h) => h.tier === "protection"));
     scanList.innerHTML = "";
-    allHits.forEach((hit) => {
+    dedupeHits(allHits).forEach((hit) => {
       const li = document.createElement("li");
-      const note = hit.note || TIER_NOTES[hit.tier] || "";
       const cls = hit.tier === "protection" || hit.tier === "jargon" ? `flag-word flag-${hit.tier}` : "flag-word";
-      li.innerHTML = `<span class="${cls}">${hit.phrase}</span> in ${hit.label} &mdash; <span class="flag-loc">${note}</span>`;
+      li.innerHTML = `<span class="${cls}">${hit.phrase}</span> in ${hit.labels.join(", ")} &mdash; <span class="flag-loc">${hit.note}</span>`;
       scanList.appendChild(li);
     });
   }
