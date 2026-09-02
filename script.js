@@ -975,7 +975,7 @@
     guide.hidden = !guide.hidden;
   });
 
-  document.getElementById("clear-btn").addEventListener("click", () => {
+  function clearAllFields() {
     ids.forEach((id) => { if (id !== "programme") fields[id].value = ""; });
     familySelect.value = "";
     populateProgrammeTypes("");
@@ -999,7 +999,11 @@
     updateShapeRing();
     updateStoryTitle();
     updateDraftBadge();
-  });
+    resetWizardStep();
+  }
+
+  document.getElementById("clear-btn").addEventListener("click", clearAllFields);
+  document.getElementById("clear-btn-wizard").addEventListener("click", clearAllFields);
 
   async function copyText(text) {
     try {
@@ -1347,7 +1351,61 @@
     switchView(dashboardView, workspaceView);
     if (startMode) setAppMode(startMode);
     positionModeThumb();
+    resetWizardStep();
   }
+
+  // ---------- story form wizard (step-by-step instead of one long scroll) ----------
+
+  const formPanelEl = document.querySelector(".form-panel");
+  const outputPanelEl = document.querySelector(".output-panel");
+  const formSteps = document.querySelectorAll(".form-step[data-step]");
+  const wizardStepDots = document.querySelectorAll(".wizard-step-dot[data-step]");
+  const wizardBackBtn = document.getElementById("wizard-back-btn");
+  const wizardNextBtn = document.getElementById("wizard-next-btn");
+  const wizardProgressText = document.getElementById("wizard-progress-text");
+  const backToEditBtn = document.getElementById("back-to-edit-btn");
+  const WIZARD_STEP_COUNT = formSteps.length;
+
+  let wizardStep = 1;
+
+  function renderWizard() {
+    if (wizardStep <= WIZARD_STEP_COUNT) {
+      formPanelEl.hidden = false;
+      outputPanelEl.hidden = true;
+      formSteps.forEach((el) => { el.hidden = Number(el.dataset.step) !== wizardStep; });
+      wizardStepDots.forEach((dot) => {
+        const active = Number(dot.dataset.step) === wizardStep;
+        dot.classList.toggle("active", active);
+        dot.setAttribute("aria-selected", active ? "true" : "false");
+      });
+      wizardBackBtn.disabled = wizardStep === 1;
+      wizardNextBtn.textContent = wizardStep === WIZARD_STEP_COUNT ? "Review & generate" : "Next";
+      wizardProgressText.textContent = `Step ${wizardStep} of ${WIZARD_STEP_COUNT}`;
+    } else {
+      formPanelEl.hidden = true;
+      outputPanelEl.hidden = false;
+    }
+  }
+
+  function resetWizardStep() {
+    wizardStep = 1;
+    renderWizard();
+  }
+
+  function goToWizardStep(step) {
+    wizardStep = Math.max(1, Math.min(WIZARD_STEP_COUNT + 1, step));
+    renderWizard();
+    (wizardStep <= WIZARD_STEP_COUNT ? formPanelEl : outputPanelEl).scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  wizardBackBtn.addEventListener("click", () => goToWizardStep(wizardStep - 1));
+  wizardNextBtn.addEventListener("click", () => goToWizardStep(wizardStep + 1));
+  wizardStepDots.forEach((dot) => {
+    dot.addEventListener("click", () => goToWizardStep(Number(dot.dataset.step)));
+  });
+  backToEditBtn.addEventListener("click", () => goToWizardStep(WIZARD_STEP_COUNT));
+
+  renderWizard();
 
   function refreshContinueDraftCard() {
     const card = document.getElementById("card-continue-draft");

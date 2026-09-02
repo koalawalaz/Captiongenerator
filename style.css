@@ -524,10 +524,75 @@ img, svg, table{max-width:100%;}
   column-gap:24px;
   grid-auto-flow:row dense;
 }
+.form-step{display:contents;}
+.form-step[hidden]{display:none;}
 #fullstory-fields{display:contents;}
 #fullstory-fields[hidden]{display:none;}
 .field{margin-bottom:14px;}
 .field-wide{grid-column:1 / -1;}
+
+.wizard-steps{
+  display:flex;
+  gap:4px;
+  flex-wrap:wrap;
+  border-bottom:1px solid var(--line);
+  margin-bottom:24px;
+}
+.wizard-step-dot{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  background:none;
+  border:none;
+  border-bottom:2px solid transparent;
+  margin-bottom:-1px;
+  padding:8px 6px 10px;
+  font-family:inherit;
+  color:var(--ink-soft);
+  cursor:pointer;
+  transition:color 0.15s ease, border-color 0.15s ease;
+}
+.wizard-step-dot:hover{color:var(--ink);}
+.wizard-step-dot.active{color:var(--ink);border-bottom-color:var(--accent);}
+.wizard-step-num{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:20px;
+  height:20px;
+  flex:none;
+  border-radius:50%;
+  border:1.5px solid var(--line);
+  font-size:0.72rem;
+  font-weight:700;
+  transition:background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.wizard-step-dot.active .wizard-step-num{background:var(--accent);border-color:var(--accent);color:#fff;}
+.wizard-step-label{font-size:0.82rem;font-weight:600;white-space:nowrap;}
+
+.wizard-nav{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  margin-top:24px;
+  padding-top:20px;
+  border-top:1px solid var(--line);
+}
+.wizard-nav-left{
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+.wizard-progress{font-size:0.8rem;color:var(--ink-soft);}
+
+.back-to-edit-btn{
+  display:inline-block;
+  margin:0 0 8px;
+  padding:0;
+  font-size:0.82rem;
+}
+
 label{
   display:block;
   font-size:0.85rem;
@@ -1219,6 +1284,8 @@ input[type="range"]::-moz-range-track{
   .tab-list{flex-wrap:wrap;}
   .workspace-sub{font-size:0.9rem;}
   #story-form{grid-template-columns:1fr;}
+  .wizard-step-label{display:none;}
+  .wizard-nav{flex-wrap:wrap;}
   .channel-card{padding:14px 16px;}
   .meter-row{font-size:0.73rem; gap:6px; margin-top:8px;}
   .meter-feedback{font-size:0.73rem;}

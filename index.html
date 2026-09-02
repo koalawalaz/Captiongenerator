@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Caption Generator</title>
-<link rel="stylesheet" href="style.css?v=20260902e">
+<link rel="stylesheet" href="style.css?v=20260902f">
 </head>
 <body>
 
@@ -149,221 +149,259 @@
             <span class="draft-badge" id="draft-badge">Draft</span>
           </div>
 
+          <div class="wizard-steps" id="wizard-steps" role="tablist">
+            <button class="wizard-step-dot active" data-step="1" type="button" role="tab" aria-selected="true">
+              <span class="wizard-step-num">1</span>
+              <span class="wizard-step-label">The story</span>
+            </button>
+            <button class="wizard-step-dot" data-step="2" type="button" role="tab" aria-selected="false">
+              <span class="wizard-step-num">2</span>
+              <span class="wizard-step-label">More detail</span>
+            </button>
+            <button class="wizard-step-dot" data-step="3" type="button" role="tab" aria-selected="false">
+              <span class="wizard-step-num">3</span>
+              <span class="wizard-step-label">Tags &amp; programme</span>
+            </button>
+            <button class="wizard-step-dot" data-step="4" type="button" role="tab" aria-selected="false">
+              <span class="wizard-step-num">4</span>
+              <span class="wizard-step-label">Tone &amp; voice</span>
+            </button>
+          </div>
+
           <form id="story-form" autocomplete="off">
-            <div class="field">
-              <label for="who">1 &middot; Who <span class="req">*</span></label>
-              <input type="text" id="who" placeholder="e.g. Amal, 34, mother of three">
-            </div>
-            <div class="field">
-              <label for="where">2 &middot; Where <span class="req">*</span></label>
-              <input type="text" id="where" placeholder="e.g. Beqaa, Lebanon">
-            </div>
-            <div class="field field-wide">
-              <label for="issue">3 &middot; What &mdash; the issue <span class="req">*</span></label>
-              <textarea id="issue" rows="2" placeholder="e.g. the family's civil documents were lost when they fled"></textarea>
-            </div>
-            <div class="field field-wide">
-              <label for="involvement">4 &middot; What &mdash; our involvement <span class="req">*</span></label>
-              <textarea id="involvement" rows="2" placeholder="e.g. our mobile legal team worked on their case for four months"></textarea>
-            </div>
-            <div class="field field-wide">
-              <label for="changed">5 &middot; What &mdash; what changed <span class="req">*</span></label>
-              <textarea id="changed" rows="2" placeholder="e.g. her three children can enroll in school in September"></textarea>
-            </div>
-            <div class="field field-wide">
-              <label for="why">6 &middot; Why this matters now</label>
-              <textarea id="why" rows="2" placeholder="e.g. without papers, families cannot enroll children in school or access health services"></textarea>
-            </div>
-            <div class="field field-wide">
-              <label for="quote">7 &middot; Quote (their own words)</label>
-              <textarea id="quote" rows="2" placeholder='e.g. "Now my children will go to school. My eldest wants to be a doctor."'></textarea>
-            </div>
-            <div class="field">
-              <label for="howmany">8 &middot; How many</label>
-              <input type="text" id="howmany" placeholder="e.g. 1,240 households">
-            </div>
-            <div class="field">
-              <label for="timeframe">9 &middot; Timeframe</label>
-              <div class="timeframe-mode-toggle" role="tablist">
-                <button type="button" class="timeframe-mode-btn active" data-mode="date" role="tab" aria-selected="true">Calendar date</button>
-                <button type="button" class="timeframe-mode-btn" data-mode="duration" role="tab" aria-selected="false">Duration</button>
+            <div class="form-step" data-step="1">
+              <div class="field">
+                <label for="who">1 &middot; Who <span class="req">*</span></label>
+                <input type="text" id="who" placeholder="e.g. Amal, 34, mother of three">
               </div>
-              <div class="timeframe-panel" data-timeframe-panel="date">
-                <div class="timeframe-date-row">
-                  <input type="date" id="timeframeDate">
-                  <span class="timeframe-date-sep">to</span>
-                  <input type="date" id="timeframeDateTo">
+              <div class="field">
+                <label for="where">2 &middot; Where <span class="req">*</span></label>
+                <input type="text" id="where" placeholder="e.g. Beqaa, Lebanon">
+              </div>
+              <div class="field field-wide">
+                <label for="issue">3 &middot; What &mdash; the issue <span class="req">*</span></label>
+                <textarea id="issue" rows="2" placeholder="e.g. the family's civil documents were lost when they fled"></textarea>
+              </div>
+              <div class="field field-wide">
+                <label for="involvement">4 &middot; What &mdash; our involvement <span class="req">*</span></label>
+                <textarea id="involvement" rows="2" placeholder="e.g. our mobile legal team worked on their case for four months"></textarea>
+              </div>
+              <div class="field field-wide">
+                <label for="changed">5 &middot; What &mdash; what changed <span class="req">*</span></label>
+                <textarea id="changed" rows="2" placeholder="e.g. her three children can enroll in school in September"></textarea>
+              </div>
+            </div>
+
+            <div class="form-step" data-step="2" hidden>
+              <div class="field field-wide">
+                <label for="why">6 &middot; Why this matters now</label>
+                <textarea id="why" rows="2" placeholder="e.g. without papers, families cannot enroll children in school or access health services"></textarea>
+              </div>
+              <div class="field field-wide">
+                <label for="quote">7 &middot; Quote (their own words)</label>
+                <textarea id="quote" rows="2" placeholder='e.g. "Now my children will go to school. My eldest wants to be a doctor."'></textarea>
+              </div>
+              <div class="field">
+                <label for="howmany">8 &middot; How many</label>
+                <input type="text" id="howmany" placeholder="e.g. 1,240 households">
+              </div>
+              <div class="field">
+                <label for="timeframe">9 &middot; Timeframe</label>
+                <div class="timeframe-mode-toggle" role="tablist">
+                  <button type="button" class="timeframe-mode-btn active" data-mode="date" role="tab" aria-selected="true">Calendar date</button>
+                  <button type="button" class="timeframe-mode-btn" data-mode="duration" role="tab" aria-selected="false">Duration</button>
                 </div>
-                <p class="field-hint">"To" is optional &mdash; leave blank if it's still ongoing.</p>
-              </div>
-              <div class="timeframe-panel" data-timeframe-panel="duration" hidden>
-                <div class="timeframe-duration-row">
-                  <select id="timeframeNumber"></select>
-                  <select id="timeframeUnit">
-                    <option value="days">Days</option>
-                    <option value="months" selected>Months</option>
-                    <option value="years">Years</option>
-                  </select>
+                <div class="timeframe-panel" data-timeframe-panel="date">
+                  <div class="timeframe-date-row">
+                    <input type="date" id="timeframeDate">
+                    <span class="timeframe-date-sep">to</span>
+                    <input type="date" id="timeframeDateTo">
+                  </div>
+                  <p class="field-hint">"To" is optional &mdash; leave blank if it's still ongoing.</p>
                 </div>
+                <div class="timeframe-panel" data-timeframe-panel="duration" hidden>
+                  <div class="timeframe-duration-row">
+                    <select id="timeframeNumber"></select>
+                    <select id="timeframeUnit">
+                      <option value="days">Days</option>
+                      <option value="months" selected>Months</option>
+                      <option value="years">Years</option>
+                    </select>
+                  </div>
+                </div>
+                <input type="hidden" id="timeframe">
+                <input type="hidden" id="timeframeMode" value="date">
               </div>
-              <input type="hidden" id="timeframe">
-              <input type="hidden" id="timeframeMode" value="date">
-            </div>
-            <div class="field field-wide">
-              <label for="results">10 &middot; Results</label>
-              <input type="text" id="results" placeholder="e.g. 78% of cases resolved, or resolution time down from nine weeks to five">
-            </div>
-            <div class="field">
-              <label for="donor">11 &middot; Donor</label>
-              <input type="text" id="donor" placeholder="e.g. Global Relief Fund (GRF)">
-            </div>
-            <div class="field">
-              <label for="partner">12 &middot; Partners</label>
-              <input type="text" id="partner" placeholder="Local partner name">
+              <div class="field field-wide">
+                <label for="results">10 &middot; Results</label>
+                <input type="text" id="results" placeholder="e.g. 78% of cases resolved, or resolution time down from nine weeks to five">
+              </div>
+              <div class="field">
+                <label for="donor">11 &middot; Donor</label>
+                <input type="text" id="donor" placeholder="e.g. Global Relief Fund (GRF)">
+              </div>
+              <div class="field">
+                <label for="partner">12 &middot; Partners</label>
+                <input type="text" id="partner" placeholder="Local partner name">
+              </div>
             </div>
 
-            <div class="field-section-head">
-              <span class="divider-letter">C</span>
-              <span class="divider-title">Mentions &amp; tags</span>
-              <span class="opt-pill">optional</span>
-              <span class="divider-rule"></span>
-            </div>
-
-            <div class="field">
-              <label for="donorHandle">Donor handle</label>
-              <input type="text" id="donorHandle" placeholder="e.g. @GRF_official &mdash; only if you know the real handle">
-            </div>
-            <div class="field">
-              <label for="partnerHandle">Partner handle</label>
-              <input type="text" id="partnerHandle" placeholder="e.g. @LocalPartnerOrg">
-            </div>
-            <div class="field field-wide">
-              <label for="orgHandle">Your organization's handle</label>
-              <input type="text" id="orgHandle" placeholder="e.g. @yourorg_ngo">
-            </div>
-
-            <div class="field-section-head">
-              <span class="divider-letter">D</span>
-              <span class="divider-title">Programme context</span>
-              <span class="opt-pill">optional</span>
-              <span class="divider-rule"></span>
-            </div>
-
-            <div class="field">
-              <label for="programmeFamily">Programme family</label>
-              <select id="programmeFamily">
-                <option value="" selected>Choose a family</option>
-                <option value="protection">Protection</option>
-                <option value="economic">Economic Recovery</option>
-                <option value="hdp">Humanitarian Disarmament and Peacebuilding</option>
-                <option value="shelter">Shelter, Settlements, WASH and Infrastructure</option>
-                <option value="innovation">Innovation</option>
-                <option value="csoe">Civil Society Engagement</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="programme">Programme type</label>
-              <select id="programme" disabled>
-                <option value="" selected>Choose a family first</option>
-              </select>
-            </div>
-
-            <div class="field">
-              <label for="phase">Project phase / context <span class="opt">optional, strengthens LinkedIn</span></label>
-              <input type="text" id="phase" placeholder="e.g. second phase, shifting from casework to capacity sharing with local partners">
-            </div>
-            <div class="field">
-              <label for="link">Website link <span class="opt">optional, used to close the LinkedIn caption</span></label>
-              <input type="text" id="link" placeholder="e.g. yourorg.org">
-            </div>
-
-            <div class="field-section-head">
-              <span class="divider-letter">E</span>
-              <span class="divider-title">Tone &amp; voice</span>
-              <span class="opt-pill">optional</span>
-              <span class="divider-rule"></span>
-            </div>
-
-            <div class="field">
-              <label for="tone">Caption tone</label>
-              <select id="tone">
-                <option value="balanced" selected>Balanced (default)</option>
-                <option value="impact">Impact &amp; outcomes focused</option>
-                <option value="resilience">Local resilience &amp; strength</option>
-                <option value="urgent">Urgent need with hope</option>
-                <option value="reflective">Reflective &amp; human-centered</option>
-                <option value="solutions">Solution-focused</option>
-              </select>
-              <p class="field-hint">Each tone keeps dignity at its centre while shifting the emphasis.</p>
-            </div>
-
-            <div class="field">
-              <label for="audience">Who's listening</label>
-              <select id="audience">
-                <option value="donors" selected>Donors &amp; funders</option>
-                <option value="volunteers">People who give or volunteer</option>
-                <option value="partners">Local partners &amp; communities</option>
-                <option value="media">Media &amp; public</option>
-                <option value="team">Your team &amp; network</option>
-              </select>
-              <p class="field-hint">Shifts which of your own details get emphasized first &mdash; donor credit, partner credit, or results.</p>
-            </div>
-
-            <div id="fullstory-fields" hidden>
+            <div class="form-step" data-step="3" hidden>
               <div class="field-section-head">
-                <span class="divider-letter">F</span>
-                <span class="divider-title">Full Story details</span>
-                <span class="opt-pill">Full Story mode</span>
+                <span class="divider-letter">C</span>
+                <span class="divider-title">Mentions &amp; tags</span>
+                <span class="opt-pill">optional</span>
                 <span class="divider-rule"></span>
               </div>
 
               <div class="field">
-                <label for="fsRegion">Region</label>
-                <select id="fsRegion">
-                  <option value="" selected>Not specified</option>
-                  <option value="mena">Middle East &amp; North Africa</option>
-                  <option value="ssa">Sub-Saharan Africa</option>
-                  <option value="sasia">South &amp; Southeast Asia</option>
-                  <option value="eca">Europe &amp; Central Asia</option>
-                  <option value="lac">Latin America &amp; Caribbean</option>
-                  <option value="eap">East Asia &amp; Pacific</option>
+                <label for="donorHandle">Donor handle</label>
+                <input type="text" id="donorHandle" placeholder="e.g. @GRF_official &mdash; only if you know the real handle">
+              </div>
+              <div class="field">
+                <label for="partnerHandle">Partner handle</label>
+                <input type="text" id="partnerHandle" placeholder="e.g. @LocalPartnerOrg">
+              </div>
+              <div class="field field-wide">
+                <label for="orgHandle">Your organization's handle</label>
+                <input type="text" id="orgHandle" placeholder="e.g. @yourorg_ngo">
+              </div>
+
+              <div class="field-section-head">
+                <span class="divider-letter">D</span>
+                <span class="divider-title">Programme context</span>
+                <span class="opt-pill">optional</span>
+                <span class="divider-rule"></span>
+              </div>
+
+              <div class="field">
+                <label for="programmeFamily">Programme family</label>
+                <select id="programmeFamily">
+                  <option value="" selected>Choose a family</option>
+                  <option value="protection">Protection</option>
+                  <option value="economic">Economic Recovery</option>
+                  <option value="hdp">Humanitarian Disarmament and Peacebuilding</option>
+                  <option value="shelter">Shelter, Settlements, WASH and Infrastructure</option>
+                  <option value="innovation">Innovation</option>
+                  <option value="csoe">Civil Society Engagement</option>
                 </select>
               </div>
               <div class="field">
-                <label for="fsStoryType">Story type</label>
-                <select id="fsStoryType">
-                  <option value="impact" selected>Impact story</option>
-                  <option value="success">Success story</option>
-                  <option value="casestudy">Case study</option>
+                <label for="programme">Programme type</label>
+                <select id="programme" disabled>
+                  <option value="" selected>Choose a family first</option>
                 </select>
               </div>
-              <p class="field-hint">Region and story type shape framing and word choice only &mdash; never facts, stats, or context beyond what you've entered.</p>
 
-              <div class="field field-wide">
-                <label for="fsContext">Regional / sector context <span class="opt">optional &mdash; your own words, not generated</span></label>
-                <textarea id="fsContext" rows="2" placeholder="e.g. ongoing displacement due to conflict in the tri-border area, or the region's rainy-season access constraints"></textarea>
-                <p class="field-hint">This is the one place to add background about the region or sector &mdash; only ever your own words, never invented from the Region or Programme dropdowns above.</p>
+              <div class="field">
+                <label for="phase">Project phase / context <span class="opt">optional, strengthens LinkedIn</span></label>
+                <input type="text" id="phase" placeholder="e.g. second phase, shifting from casework to capacity sharing with local partners">
+              </div>
+              <div class="field">
+                <label for="link">Website link <span class="opt">optional, used to close the LinkedIn caption</span></label>
+                <input type="text" id="link" placeholder="e.g. yourorg.org">
+              </div>
+            </div>
+
+            <div class="form-step" data-step="4" hidden>
+              <div class="field-section-head">
+                <span class="divider-letter">E</span>
+                <span class="divider-title">Tone &amp; voice</span>
+                <span class="opt-pill">optional</span>
+                <span class="divider-rule"></span>
               </div>
 
-              <div class="field field-wide">
-                <label for="fsQuote2">Second quote / perspective <span class="opt">optional, a different voice than Quote above</span></label>
-                <textarea id="fsQuote2" rows="2" placeholder="e.g. a staff member's perspective, if the Quote above is a beneficiary's"></textarea>
+              <div class="field">
+                <label for="tone">Caption tone</label>
+                <select id="tone">
+                  <option value="balanced" selected>Balanced (default)</option>
+                  <option value="impact">Impact &amp; outcomes focused</option>
+                  <option value="resilience">Local resilience &amp; strength</option>
+                  <option value="urgent">Urgent need with hope</option>
+                  <option value="reflective">Reflective &amp; human-centered</option>
+                  <option value="solutions">Solution-focused</option>
+                </select>
+                <p class="field-hint">Each tone keeps dignity at its centre while shifting the emphasis.</p>
               </div>
-              <div class="field field-wide">
-                <label for="fsQuote2Attribution">Second quote attribution <span class="opt">optional</span></label>
-                <input type="text" id="fsQuote2Attribution" placeholder="e.g. Program Officer, YourOrg">
+
+              <div class="field">
+                <label for="audience">Who's listening</label>
+                <select id="audience">
+                  <option value="donors" selected>Donors &amp; funders</option>
+                  <option value="volunteers">People who give or volunteer</option>
+                  <option value="partners">Local partners &amp; communities</option>
+                  <option value="media">Media &amp; public</option>
+                  <option value="team">Your team &amp; network</option>
+                </select>
+                <p class="field-hint">Shifts which of your own details get emphasized first &mdash; donor credit, partner credit, or results.</p>
               </div>
-              <div class="field field-wide">
-                <label for="fsWhatsNext">What's next <span class="opt">optional &mdash; ongoing needs or the next phase</span></label>
-                <textarea id="fsWhatsNext" rows="2" placeholder="e.g. the programme is expanding to two more districts next year"></textarea>
+
+              <div id="fullstory-fields" hidden>
+                <div class="field-section-head">
+                  <span class="divider-letter">F</span>
+                  <span class="divider-title">Full Story details</span>
+                  <span class="opt-pill">Full Story mode</span>
+                  <span class="divider-rule"></span>
+                </div>
+
+                <div class="field">
+                  <label for="fsRegion">Region</label>
+                  <select id="fsRegion">
+                    <option value="" selected>Not specified</option>
+                    <option value="mena">Middle East &amp; North Africa</option>
+                    <option value="ssa">Sub-Saharan Africa</option>
+                    <option value="sasia">South &amp; Southeast Asia</option>
+                    <option value="eca">Europe &amp; Central Asia</option>
+                    <option value="lac">Latin America &amp; Caribbean</option>
+                    <option value="eap">East Asia &amp; Pacific</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="fsStoryType">Story type</label>
+                  <select id="fsStoryType">
+                    <option value="impact" selected>Impact story</option>
+                    <option value="success">Success story</option>
+                    <option value="casestudy">Case study</option>
+                  </select>
+                </div>
+                <p class="field-hint">Region and story type shape framing and word choice only &mdash; never facts, stats, or context beyond what you've entered.</p>
+
+                <div class="field field-wide">
+                  <label for="fsContext">Regional / sector context <span class="opt">optional &mdash; your own words, not generated</span></label>
+                  <textarea id="fsContext" rows="2" placeholder="e.g. ongoing displacement due to conflict in the tri-border area, or the region's rainy-season access constraints"></textarea>
+                  <p class="field-hint">This is the one place to add background about the region or sector &mdash; only ever your own words, never invented from the Region or Programme dropdowns above.</p>
+                </div>
+
+                <div class="field field-wide">
+                  <label for="fsQuote2">Second quote / perspective <span class="opt">optional, a different voice than Quote above</span></label>
+                  <textarea id="fsQuote2" rows="2" placeholder="e.g. a staff member's perspective, if the Quote above is a beneficiary's"></textarea>
+                </div>
+                <div class="field field-wide">
+                  <label for="fsQuote2Attribution">Second quote attribution <span class="opt">optional</span></label>
+                  <input type="text" id="fsQuote2Attribution" placeholder="e.g. Program Officer, YourOrg">
+                </div>
+                <div class="field field-wide">
+                  <label for="fsWhatsNext">What's next <span class="opt">optional &mdash; ongoing needs or the next phase</span></label>
+                  <textarea id="fsWhatsNext" rows="2" placeholder="e.g. the programme is expanding to two more districts next year"></textarea>
+                </div>
               </div>
             </div>
           </form>
+
+          <div class="wizard-nav">
+            <div class="wizard-nav-left">
+              <button type="button" id="wizard-back-btn" class="secondary-btn" disabled>Back</button>
+              <button type="button" id="clear-btn-wizard" class="link-btn">Clear all</button>
+            </div>
+            <span class="wizard-progress" id="wizard-progress-text">Step 1 of 4</span>
+            <button type="button" id="wizard-next-btn" class="upload-btn">Next</button>
+          </div>
         </section>
 
-        <section class="panel output-panel">
+        <section class="panel output-panel" hidden>
           <div class="panel-head">
             <div>
+              <button type="button" class="link-btn back-to-edit-btn" id="back-to-edit-btn">&larr; Back to edit</button>
               <p class="panel-eyebrow" id="output-eyebrow">02 &middot; Shape the words</p>
               <h2 id="output-title">Your caption</h2>
             </div>
@@ -580,6 +618,6 @@
     "y": "daJuKnjCmA25zB6JpzfYuHTs3JPyrh4X3omAUWeM9RQ"
   };
 </script>
-<script src="script.js?v=20260902e"></script>
+<script src="script.js?v=20260902f"></script>
 </body>
 </html>
