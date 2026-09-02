@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Caption Generator</title>
-<link rel="stylesheet" href="style.css?v=20260902d">
+<link rel="stylesheet" href="style.css?v=20260902e">
 </head>
 <body>
 
@@ -158,72 +158,68 @@
               <label for="where">2 &middot; Where <span class="req">*</span></label>
               <input type="text" id="where" placeholder="e.g. Beqaa, Lebanon">
             </div>
-            <div class="field">
+            <div class="field field-wide">
               <label for="issue">3 &middot; What &mdash; the issue <span class="req">*</span></label>
               <textarea id="issue" rows="2" placeholder="e.g. the family's civil documents were lost when they fled"></textarea>
             </div>
-            <div class="field">
+            <div class="field field-wide">
               <label for="involvement">4 &middot; What &mdash; our involvement <span class="req">*</span></label>
               <textarea id="involvement" rows="2" placeholder="e.g. our mobile legal team worked on their case for four months"></textarea>
             </div>
-            <div class="field">
+            <div class="field field-wide">
               <label for="changed">5 &middot; What &mdash; what changed <span class="req">*</span></label>
               <textarea id="changed" rows="2" placeholder="e.g. her three children can enroll in school in September"></textarea>
             </div>
-            <div class="field">
+            <div class="field field-wide">
               <label for="why">6 &middot; Why this matters now</label>
               <textarea id="why" rows="2" placeholder="e.g. without papers, families cannot enroll children in school or access health services"></textarea>
             </div>
-            <div class="field">
+            <div class="field field-wide">
               <label for="quote">7 &middot; Quote (their own words)</label>
               <textarea id="quote" rows="2" placeholder='e.g. "Now my children will go to school. My eldest wants to be a doctor."'></textarea>
             </div>
-            <div class="field-row">
-              <div class="field">
-                <label for="howmany">8 &middot; How many</label>
-                <input type="text" id="howmany" placeholder="e.g. 1,240 households">
-              </div>
-              <div class="field">
-                <label for="timeframe">9 &middot; Timeframe</label>
-                <div class="timeframe-mode-toggle" role="tablist">
-                  <button type="button" class="timeframe-mode-btn active" data-mode="date" role="tab" aria-selected="true">Calendar date</button>
-                  <button type="button" class="timeframe-mode-btn" data-mode="duration" role="tab" aria-selected="false">Duration</button>
-                </div>
-                <div class="timeframe-panel" data-timeframe-panel="date">
-                  <div class="timeframe-date-row">
-                    <input type="date" id="timeframeDate">
-                    <span class="timeframe-date-sep">to</span>
-                    <input type="date" id="timeframeDateTo">
-                  </div>
-                  <p class="field-hint">"To" is optional &mdash; leave blank if it's still ongoing.</p>
-                </div>
-                <div class="timeframe-panel" data-timeframe-panel="duration" hidden>
-                  <div class="timeframe-duration-row">
-                    <select id="timeframeNumber"></select>
-                    <select id="timeframeUnit">
-                      <option value="days">Days</option>
-                      <option value="months" selected>Months</option>
-                      <option value="years">Years</option>
-                    </select>
-                  </div>
-                </div>
-                <input type="hidden" id="timeframe">
-                <input type="hidden" id="timeframeMode" value="date">
-              </div>
+            <div class="field">
+              <label for="howmany">8 &middot; How many</label>
+              <input type="text" id="howmany" placeholder="e.g. 1,240 households">
             </div>
             <div class="field">
+              <label for="timeframe">9 &middot; Timeframe</label>
+              <div class="timeframe-mode-toggle" role="tablist">
+                <button type="button" class="timeframe-mode-btn active" data-mode="date" role="tab" aria-selected="true">Calendar date</button>
+                <button type="button" class="timeframe-mode-btn" data-mode="duration" role="tab" aria-selected="false">Duration</button>
+              </div>
+              <div class="timeframe-panel" data-timeframe-panel="date">
+                <div class="timeframe-date-row">
+                  <input type="date" id="timeframeDate">
+                  <span class="timeframe-date-sep">to</span>
+                  <input type="date" id="timeframeDateTo">
+                </div>
+                <p class="field-hint">"To" is optional &mdash; leave blank if it's still ongoing.</p>
+              </div>
+              <div class="timeframe-panel" data-timeframe-panel="duration" hidden>
+                <div class="timeframe-duration-row">
+                  <select id="timeframeNumber"></select>
+                  <select id="timeframeUnit">
+                    <option value="days">Days</option>
+                    <option value="months" selected>Months</option>
+                    <option value="years">Years</option>
+                  </select>
+                </div>
+              </div>
+              <input type="hidden" id="timeframe">
+              <input type="hidden" id="timeframeMode" value="date">
+            </div>
+            <div class="field field-wide">
               <label for="results">10 &middot; Results</label>
               <input type="text" id="results" placeholder="e.g. 78% of cases resolved, or resolution time down from nine weeks to five">
             </div>
-            <div class="field-row">
-              <div class="field">
-                <label for="donor">11 &middot; Donor</label>
-                <input type="text" id="donor" placeholder="e.g. Global Relief Fund (GRF)">
-              </div>
-              <div class="field">
-                <label for="partner">12 &middot; Partners</label>
-                <input type="text" id="partner" placeholder="Local partner name">
-              </div>
+            <div class="field">
+              <label for="donor">11 &middot; Donor</label>
+              <input type="text" id="donor" placeholder="e.g. Global Relief Fund (GRF)">
+            </div>
+            <div class="field">
+              <label for="partner">12 &middot; Partners</label>
+              <input type="text" id="partner" placeholder="Local partner name">
             </div>
 
             <div class="field-section-head">
@@ -233,17 +229,15 @@
               <span class="divider-rule"></span>
             </div>
 
-            <div class="field-row">
-              <div class="field">
-                <label for="donorHandle">Donor handle</label>
-                <input type="text" id="donorHandle" placeholder="e.g. @GRF_official &mdash; only if you know the real handle">
-              </div>
-              <div class="field">
-                <label for="partnerHandle">Partner handle</label>
-                <input type="text" id="partnerHandle" placeholder="e.g. @LocalPartnerOrg">
-              </div>
+            <div class="field">
+              <label for="donorHandle">Donor handle</label>
+              <input type="text" id="donorHandle" placeholder="e.g. @GRF_official &mdash; only if you know the real handle">
             </div>
             <div class="field">
+              <label for="partnerHandle">Partner handle</label>
+              <input type="text" id="partnerHandle" placeholder="e.g. @LocalPartnerOrg">
+            </div>
+            <div class="field field-wide">
               <label for="orgHandle">Your organization's handle</label>
               <input type="text" id="orgHandle" placeholder="e.g. @yourorg_ngo">
             </div>
@@ -255,25 +249,23 @@
               <span class="divider-rule"></span>
             </div>
 
-            <div class="field-row">
-              <div class="field">
-                <label for="programmeFamily">Programme family</label>
-                <select id="programmeFamily">
-                  <option value="" selected>Choose a family</option>
-                  <option value="protection">Protection</option>
-                  <option value="economic">Economic Recovery</option>
-                  <option value="hdp">Humanitarian Disarmament and Peacebuilding</option>
-                  <option value="shelter">Shelter, Settlements, WASH and Infrastructure</option>
-                  <option value="innovation">Innovation</option>
-                  <option value="csoe">Civil Society Engagement</option>
-                </select>
-              </div>
-              <div class="field">
-                <label for="programme">Programme type</label>
-                <select id="programme" disabled>
-                  <option value="" selected>Choose a family first</option>
-                </select>
-              </div>
+            <div class="field">
+              <label for="programmeFamily">Programme family</label>
+              <select id="programmeFamily">
+                <option value="" selected>Choose a family</option>
+                <option value="protection">Protection</option>
+                <option value="economic">Economic Recovery</option>
+                <option value="hdp">Humanitarian Disarmament and Peacebuilding</option>
+                <option value="shelter">Shelter, Settlements, WASH and Infrastructure</option>
+                <option value="innovation">Innovation</option>
+                <option value="csoe">Civil Society Engagement</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="programme">Programme type</label>
+              <select id="programme" disabled>
+                <option value="" selected>Choose a family first</option>
+              </select>
             </div>
 
             <div class="field">
@@ -325,45 +317,43 @@
                 <span class="divider-rule"></span>
               </div>
 
-              <div class="field-row">
-                <div class="field">
-                  <label for="fsRegion">Region</label>
-                  <select id="fsRegion">
-                    <option value="" selected>Not specified</option>
-                    <option value="mena">Middle East &amp; North Africa</option>
-                    <option value="ssa">Sub-Saharan Africa</option>
-                    <option value="sasia">South &amp; Southeast Asia</option>
-                    <option value="eca">Europe &amp; Central Asia</option>
-                    <option value="lac">Latin America &amp; Caribbean</option>
-                    <option value="eap">East Asia &amp; Pacific</option>
-                  </select>
-                </div>
-                <div class="field">
-                  <label for="fsStoryType">Story type</label>
-                  <select id="fsStoryType">
-                    <option value="impact" selected>Impact story</option>
-                    <option value="success">Success story</option>
-                    <option value="casestudy">Case study</option>
-                  </select>
-                </div>
+              <div class="field">
+                <label for="fsRegion">Region</label>
+                <select id="fsRegion">
+                  <option value="" selected>Not specified</option>
+                  <option value="mena">Middle East &amp; North Africa</option>
+                  <option value="ssa">Sub-Saharan Africa</option>
+                  <option value="sasia">South &amp; Southeast Asia</option>
+                  <option value="eca">Europe &amp; Central Asia</option>
+                  <option value="lac">Latin America &amp; Caribbean</option>
+                  <option value="eap">East Asia &amp; Pacific</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="fsStoryType">Story type</label>
+                <select id="fsStoryType">
+                  <option value="impact" selected>Impact story</option>
+                  <option value="success">Success story</option>
+                  <option value="casestudy">Case study</option>
+                </select>
               </div>
               <p class="field-hint">Region and story type shape framing and word choice only &mdash; never facts, stats, or context beyond what you've entered.</p>
 
-              <div class="field">
+              <div class="field field-wide">
                 <label for="fsContext">Regional / sector context <span class="opt">optional &mdash; your own words, not generated</span></label>
                 <textarea id="fsContext" rows="2" placeholder="e.g. ongoing displacement due to conflict in the tri-border area, or the region's rainy-season access constraints"></textarea>
                 <p class="field-hint">This is the one place to add background about the region or sector &mdash; only ever your own words, never invented from the Region or Programme dropdowns above.</p>
               </div>
 
-              <div class="field">
+              <div class="field field-wide">
                 <label for="fsQuote2">Second quote / perspective <span class="opt">optional, a different voice than Quote above</span></label>
                 <textarea id="fsQuote2" rows="2" placeholder="e.g. a staff member's perspective, if the Quote above is a beneficiary's"></textarea>
               </div>
-              <div class="field">
+              <div class="field field-wide">
                 <label for="fsQuote2Attribution">Second quote attribution <span class="opt">optional</span></label>
                 <input type="text" id="fsQuote2Attribution" placeholder="e.g. Program Officer, YourOrg">
               </div>
-              <div class="field">
+              <div class="field field-wide">
                 <label for="fsWhatsNext">What's next <span class="opt">optional &mdash; ongoing needs or the next phase</span></label>
                 <textarea id="fsWhatsNext" rows="2" placeholder="e.g. the programme is expanding to two more districts next year"></textarea>
               </div>
@@ -590,6 +580,6 @@
     "y": "daJuKnjCmA25zB6JpzfYuHTs3JPyrh4X3omAUWeM9RQ"
   };
 </script>
-<script src="script.js?v=20260902d"></script>
+<script src="script.js?v=20260902e"></script>
 </body>
 </html>

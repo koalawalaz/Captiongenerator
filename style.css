@@ -421,10 +421,9 @@ img, svg, table{max-width:100%;}
 .shape-sub{margin:2px 0 0;font-size:0.78rem;color:var(--ink-soft);}
 
 .workspace-grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
+  display:flex;
+  flex-direction:column;
   gap:24px;
-  align-items:start;
 }
 
 /* ---------- panels ---------- */
@@ -519,12 +518,16 @@ img, svg, table{max-width:100%;}
   font-weight:600;
 }
 
-.field{margin-bottom:14px;}
-.field-row{
+#story-form{
   display:grid;
   grid-template-columns:1fr 1fr;
-  gap:14px;
+  column-gap:24px;
+  grid-auto-flow:row dense;
 }
+#fullstory-fields{display:contents;}
+#fullstory-fields[hidden]{display:none;}
+.field{margin-bottom:14px;}
+.field-wide{grid-column:1 / -1;}
 label{
   display:block;
   font-size:0.85rem;
@@ -552,7 +555,8 @@ input[type="text"], textarea, select{
 }
 select{cursor:pointer;}
 .field-hint{
-  margin:6px 0 0;
+  grid-column:1 / -1;
+  margin:6px 0 14px;
   font-size:0.75rem;
   color:var(--ink-soft);
 }
@@ -607,6 +611,7 @@ input[type="text"]:focus, textarea:focus, select:focus{
 }
 
 .field-section-head{
+  grid-column:1 / -1;
   display:flex;
   align-items:center;
   gap:10px;
@@ -908,6 +913,7 @@ input[type="range"]::-moz-range-track{
   white-space:pre-wrap;
   font-size:0.94rem;
   min-height:2.4em;
+  max-width:70ch;
   padding:10px 12px;
   background:var(--ground);
   border-radius:6px;
@@ -994,6 +1000,7 @@ input[type="range"]::-moz-range-track{
 }
 .fs-headline{
   margin:0 0 8px;
+  max-width:70ch;
   font-family:var(--font-serif);
   font-size:1.6rem;
   font-weight:700;
@@ -1002,6 +1009,7 @@ input[type="range"]::-moz-range-track{
 }
 .fs-dek{
   margin:0 0 20px;
+  max-width:70ch;
   font-size:1rem;
   font-style:italic;
   color:var(--ink-soft);
@@ -1011,6 +1019,7 @@ input[type="range"]::-moz-range-track{
 }
 .fs-para{
   margin:0 0 16px;
+  max-width:70ch;
   font-size:0.96rem;
   line-height:1.65;
   color:var(--ink);
@@ -1193,7 +1202,6 @@ input[type="range"]::-moz-range-track{
 /* ---------- responsive ---------- */
 
 @media (max-width:1180px){
-  .workspace-grid{grid-template-columns:1fr;}
   .workspace-head{flex-direction:column;}
 }
 
@@ -1210,7 +1218,7 @@ input[type="range"]::-moz-range-track{
   .panel{padding:18px 16px;}
   .tab-list{flex-wrap:wrap;}
   .workspace-sub{font-size:0.9rem;}
-  .field-row{grid-template-columns:1fr;}
+  #story-form{grid-template-columns:1fr;}
   .channel-card{padding:14px 16px;}
   .meter-row{font-size:0.73rem; gap:6px; margin-top:8px;}
   .meter-feedback{font-size:0.73rem;}
