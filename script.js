@@ -903,8 +903,13 @@
   }
 
   // ---------- suggestions ----------
+  //
+  // "Try:" example chips shown under Issue/Involvement/Changed/Why/Quote.
+  // Content varies by the selected Programme family so the examples
+  // actually match the kind of story being told; before a family is
+  // chosen, they fall back to generic examples.
 
-  const SUGGESTIONS = {
+  const SUGGESTIONS_DEFAULT = {
     issue: [
       "the family's documents were lost when they fled",
       "she had no access to clean water for months",
@@ -932,20 +937,185 @@
     ],
   };
 
-  Object.keys(SUGGESTIONS).forEach((fieldId) => {
+  const SUGGESTIONS_BY_FAMILY = {
+    protection: {
+      issue: [
+        "she faced the risk of family separation after fleeing the fighting",
+        "he had no legal documentation to prove his status in the country",
+        "the children were at risk of early marriage during displacement",
+      ],
+      involvement: [
+        "our case workers registered the family and began individual protection follow-up",
+        "our legal aid team helped him apply for replacement identity documents",
+        "our community protection network flagged and responded to the risk within days",
+      ],
+      changed: [
+        "the family was reunited and now has a registered protection case file",
+        "he received valid documentation recognized by local authorities",
+        "the girls remained in school instead of being married off",
+      ],
+      why: [
+        "without protection support, displaced families face heightened risk of exploitation and abuse",
+        "undocumented status leaves people unable to access basic services or move safely",
+        "early marriage remains a common negative coping strategy during displacement",
+      ],
+      quote: [
+        "I finally feel safe again.",
+        "Now I have papers that prove who I am.",
+        "My daughters get to stay in school.",
+      ],
+    },
+    economic: {
+      issue: [
+        "she lost her only source of income when the local market closed",
+        "he had no capital left to restart his small business after the crisis",
+        "the family relied on unpredictable day labor to get by",
+      ],
+      involvement: [
+        "our livelihoods team provided a small business grant and basic training",
+        "our cash-for-work programme gave him short-term paid employment",
+        "our vocational training connected her with a recognized trade skill",
+      ],
+      changed: [
+        "she reopened her shop and now earns a stable monthly income",
+        "he found steady work using his new trade skill",
+        "the family no longer depends on day labor to cover basic needs",
+      ],
+      why: [
+        "without a stable income, families cannot cover rent, food, or school costs",
+        "restarting a livelihood is often the turning point after a crisis",
+        "sustainable income reduces reliance on humanitarian assistance over time",
+      ],
+      quote: [
+        "I can provide for my children again.",
+        "This grant gave me a second chance.",
+        "Now I don't have to worry about tomorrow.",
+      ],
+    },
+    hdp: {
+      issue: [
+        "unexploded ordnance made the family's farmland unsafe to use",
+        "longstanding tension between the two communities blocked shared access to water",
+        "former combatants had no clear pathway back into community life",
+      ],
+      involvement: [
+        "our clearance team surveyed and cleared the contaminated land",
+        "our dialogue sessions brought community leaders from both sides to the table",
+        "our reintegration programme paired him with a local mentor and vocational training",
+      ],
+      changed: [
+        "the family safely returned to farming their land",
+        "the two communities now share the water point without incident",
+        "he was welcomed back and now works alongside his neighbors",
+      ],
+      why: [
+        "contaminated land keeps families from farming or grazing safely for years after conflict ends",
+        "unresolved tension between communities can reignite into violence without deliberate dialogue",
+        "without a path to reintegrate, former combatants risk being pulled back into conflict",
+      ],
+      quote: [
+        "We can finally use our land again.",
+        "We talk to our neighbors now instead of avoiding them.",
+        "I have a place in this community again.",
+      ],
+    },
+    shelter: {
+      issue: [
+        "the family's shelter had no roof before the rainy season began",
+        "the community had no working latrine and relied on open defecation",
+        "flooding had contaminated the only water point serving the settlement",
+      ],
+      involvement: [
+        "our shelter team repaired the roof and reinforced the walls",
+        "our WASH team built and handed over three household latrines",
+        "our engineers rehabilitated the water point and added a filtration system",
+      ],
+      changed: [
+        "the family now has a dry, secure place to sleep through the rains",
+        "the community uses proper sanitation for the first time",
+        "residents now have reliable access to clean water",
+      ],
+      why: [
+        "without adequate shelter, families face exposure to cold, rain, and disease",
+        "poor sanitation is a leading cause of preventable illness in displacement settings",
+        "contaminated water sources put entire communities at risk of outbreak",
+      ],
+      quote: [
+        "We finally have a dry place to sleep.",
+        "My children don't get sick as often now.",
+        "We don't have to walk far for clean water anymore.",
+      ],
+    },
+    innovation: {
+      issue: [
+        "the clinic had no reliable way to track medicine stock and often ran out",
+        "farmers had no early-warning system ahead of the drought",
+        "field teams had no offline way to register new arrivals in remote areas",
+      ],
+      involvement: [
+        "our team piloted a simple digital stock-tracking tool at the clinic",
+        "our early-warning system now sends drought alerts directly to farmers' phones",
+        "our offline registration app let field teams register people without a signal",
+      ],
+      changed: [
+        "the clinic has not run out of essential medicine since the pilot began",
+        "farmers now plant and harvest around the alerts they receive",
+        "registration that used to take days now happens in the field within hours",
+      ],
+      why: [
+        "stock-outs at the last-mile clinic can mean the difference between treatment and none",
+        "early warning gives farmers time to protect crops and livestock before a drought hits",
+        "delays in registration can leave the most remote families waiting weeks for aid",
+      ],
+      quote: [
+        "We know exactly what's in stock now.",
+        "The alert gave us time to prepare.",
+        "I was registered the same day I arrived.",
+      ],
+    },
+    csoe: {
+      issue: [
+        "local community groups had no seat at the planning table",
+        "youth volunteers had no formal training or defined role",
+        "the community-led committee lacked the basic resources to operate",
+      ],
+      involvement: [
+        "our team facilitated the community group's first seat on the coordination committee",
+        "our training programme gave 20 youth volunteers a certified community role",
+        "our small grants programme covered the committee's basic operating costs",
+      ],
+      changed: [
+        "the community group now helps shape decisions that affect their own neighborhood",
+        "the trained volunteers now lead their own outreach activities",
+        "the committee meets regularly and tracks its own priorities",
+      ],
+      why: [
+        "decisions made without local input often miss what communities actually need",
+        "untrained volunteers can bring energy but need structure to be effective",
+        "grassroots groups without basic resources struggle to sustain their work",
+      ],
+      quote: [
+        "They listen to us now.",
+        "I finally have a real role in my community.",
+        "We can make our own decisions about what we need.",
+      ],
+    },
+  };
+
+  const suggestionBoxes = {};
+
+  function currentSuggestionsFor(fieldId) {
+    const family = document.getElementById("programmeFamily").value;
+    const familySet = SUGGESTIONS_BY_FAMILY[family];
+    return (familySet && familySet[fieldId]) || SUGGESTIONS_DEFAULT[fieldId];
+  }
+
+  function fillSuggestionBox(fieldId) {
     const field = fields[fieldId];
-    if (!field) return;
-
-    const box = document.createElement("div");
-    box.className = "suggestions";
-    box.hidden = true;
-
-    const label = document.createElement("span");
-    label.className = "suggestions-label";
-    label.textContent = "Try:";
-    box.appendChild(label);
-
-    SUGGESTIONS[fieldId].forEach((text) => {
+    const box = suggestionBoxes[fieldId];
+    if (!field || !box) return;
+    box.querySelectorAll(".chip").forEach((chip) => chip.remove());
+    currentSuggestionsFor(fieldId).forEach((text) => {
       const chip = document.createElement("button");
       chip.type = "button";
       chip.className = "chip";
@@ -959,6 +1129,27 @@
       });
       box.appendChild(chip);
     });
+  }
+
+  function refreshSuggestionsForFamily() {
+    Object.keys(SUGGESTIONS_DEFAULT).forEach(fillSuggestionBox);
+  }
+
+  Object.keys(SUGGESTIONS_DEFAULT).forEach((fieldId) => {
+    const field = fields[fieldId];
+    if (!field) return;
+
+    const box = document.createElement("div");
+    box.className = "suggestions";
+    box.hidden = true;
+
+    const label = document.createElement("span");
+    label.className = "suggestions-label";
+    label.textContent = "Try:";
+    box.appendChild(label);
+
+    suggestionBoxes[fieldId] = box;
+    fillSuggestionBox(fieldId);
 
     field.insertAdjacentElement("afterend", box);
 
@@ -993,6 +1184,7 @@
     ids.forEach((id) => { if (id !== "programme") fields[id].value = ""; });
     familySelect.value = "";
     populateProgrammeTypes("");
+    refreshSuggestionsForFamily();
     fields.timeframeUnit.value = "months";
     populateTimeframeNumberOptions("months");
     setTimeframeMode("date");
@@ -1358,7 +1550,6 @@
 
   function showDashboard() {
     switchView(workspaceView, dashboardView);
-    refreshContinueDraftCard();
   }
 
   function showWorkspace(startMode) {
@@ -1421,33 +1612,6 @@
 
   renderWizard();
 
-  function refreshContinueDraftCard() {
-    const card = document.getElementById("card-continue-draft");
-    const titleEl = document.getElementById("continue-draft-title");
-    let stored;
-    try {
-      stored = localStorage.getItem(DRAFT_KEY);
-    } catch (e) {
-      stored = null;
-    }
-    if (!stored) { card.hidden = true; return; }
-    let draft;
-    try {
-      draft = JSON.parse(stored);
-    } catch (e) {
-      card.hidden = true;
-      return;
-    }
-    // Only the core narrative fields count — tone/audience/timeframe-mode
-    // etc. always carry a non-empty default value even on an untouched
-    // form, so checking every draft key would show this card for a
-    // visitor who never typed anything.
-    const hasContent = SHAPE_FIELD_IDS.some((id) => typeof draft[id] === "string" && draft[id].trim());
-    if (!hasContent) { card.hidden = true; return; }
-    card.hidden = false;
-    titleEl.textContent = draft.who ? `${firstName(draft.who)}'s story` : "Untitled field story";
-  }
-
   document.getElementById("logo-home-btn").addEventListener("click", showDashboard);
   document.getElementById("card-new-caption").addEventListener("click", () => {
     document.getElementById("clear-btn").click();
@@ -1456,9 +1620,6 @@
   document.getElementById("card-new-fullstory").addEventListener("click", () => {
     document.getElementById("clear-btn").click();
     showWorkspace("fullstory");
-  });
-  document.getElementById("card-continue-draft").addEventListener("click", () => {
-    showWorkspace();
   });
 
   function clearFullStoryOutput() {
@@ -1579,6 +1740,7 @@
 
   familySelect.addEventListener("change", () => {
     populateProgrammeTypes(familySelect.value);
+    refreshSuggestionsForFamily();
     scheduleDraftSave();
   });
 
@@ -1740,6 +1902,7 @@
       if (typeof draft[id] === "string" && fields[id]) fields[id].value = draft[id];
     });
     if (draft.programme) restoreProgrammeSelection(draft.programme);
+    refreshSuggestionsForFamily();
     populateTimeframeNumberOptions(fields.timeframeUnit.value);
     if (typeof draft.timeframeNumber === "string") fields.timeframeNumber.value = draft.timeframeNumber;
     setTimeframeMode(draft.timeframeMode || "date");
@@ -1799,6 +1962,5 @@
   loadDraft();
   updateShapeRing();
   updateStoryTitle();
-  refreshContinueDraftCard();
 
 })();
