@@ -801,7 +801,7 @@
     const hits = [
       ...scanText("Instagram/Facebook", metaBase),
       ...scanText("LinkedIn", linkedinBase),
-      ...scanText("Website", websiteBase),
+      ...scanText("Website story", websiteBase),
       ...scanText("your Quote box", v.quote),
       ...scanText("your Why box", v.why),
     ];
@@ -975,7 +975,7 @@
     guide.hidden = !guide.hidden;
   });
 
-  document.getElementById("clear-btn").addEventListener("click", () => {
+  function clearAllFields() {
     ids.forEach((id) => { if (id !== "programme") fields[id].value = ""; });
     familySelect.value = "";
     populateProgrammeTypes("");
@@ -999,7 +999,11 @@
     updateShapeRing();
     updateStoryTitle();
     updateDraftBadge();
-  });
+    resetWizardStep();
+  }
+
+  document.getElementById("clear-btn").addEventListener("click", clearAllFields);
+  document.getElementById("clear-btn-wizard").addEventListener("click", clearAllFields);
 
   async function copyText(text) {
     try {
@@ -1290,6 +1294,15 @@
   const outputEyebrow = document.getElementById("output-eyebrow");
   const outputTitle = document.getElementById("output-title");
 
+  const modeToggleThumb = document.getElementById("mode-toggle-thumb");
+
+  function positionModeThumb() {
+    const activeBtn = document.querySelector(".mode-toggle-btn.active");
+    if (!activeBtn || !modeToggleThumb) return;
+    modeToggleThumb.style.width = `${activeBtn.offsetWidth}px`;
+    modeToggleThumb.style.transform = `translateX(${activeBtn.offsetLeft - 4}px)`;
+  }
+
   function setAppMode(mode) {
     appMode = mode;
     const isFullStory = mode === "fullstory";
@@ -1298,6 +1311,7 @@
       btn.classList.toggle("active", active);
       btn.setAttribute("aria-selected", active ? "true" : "false");
     });
+    positionModeThumb();
     fullstoryFields.hidden = !isFullStory;
     captionsControls.hidden = isFullStory;
     captionsOutput.hidden = isFullStory;
@@ -1313,6 +1327,124 @@
 
   modeToggleButtons.forEach((btn) => {
     btn.addEventListener("click", () => setAppMode(btn.getAttribute("data-app-mode")));
+  });
+
+  // ---------- Dashboard <-> Workspace navigation ----------
+
+  const dashboardView = document.getElementById("dashboard-view");
+  const workspaceView = document.getElementById("workspace-view");
+
+  function switchView(fromEl, toEl) {
+    toEl.hidden = false;
+    toEl.classList.add("view-entering");
+    void toEl.offsetWidth; // force reflow so the entering state is committed before removal
+    toEl.classList.remove("view-entering");
+    fromEl.hidden = true;
+  }
+
+  function showDashboard() {
+    switchView(workspaceView, dashboardView);
+    refreshContinueDraftCard();
+  }
+
+  function showWorkspace(startMode) {
+    switchView(dashboardView, workspaceView);
+    if (startMode) setAppMode(startMode);
+    positionModeThumb();
+    resetWizardStep();
+  }
+
+  // ---------- story form wizard (step-by-step instead of one long scroll) ----------
+
+  const formPanelEl = document.querySelector(".form-panel");
+  const outputPanelEl = document.querySelector(".output-panel");
+  const formSteps = document.querySelectorAll(".form-step[data-step]");
+  const wizardStepDots = document.querySelectorAll(".wizard-step-dot[data-step]");
+  const wizardBackBtn = document.getElementById("wizard-back-btn");
+  const wizardNextBtn = document.getElementById("wizard-next-btn");
+  const wizardProgressText = document.getElementById("wizard-progress-text");
+  const backToEditBtn = document.getElementById("back-to-edit-btn");
+  const WIZARD_STEP_COUNT = formSteps.length;
+
+  let wizardStep = 1;
+
+  function renderWizard() {
+    if (wizardStep <= WIZARD_STEP_COUNT) {
+      formPanelEl.hidden = false;
+      outputPanelEl.hidden = true;
+      formSteps.forEach((el) => { el.hidden = Number(el.dataset.step) !== wizardStep; });
+      wizardStepDots.forEach((dot) => {
+        const active = Number(dot.dataset.step) === wizardStep;
+        dot.classList.toggle("active", active);
+        dot.setAttribute("aria-selected", active ? "true" : "false");
+      });
+      wizardBackBtn.disabled = wizardStep === 1;
+      wizardNextBtn.textContent = wizardStep === WIZARD_STEP_COUNT ? "Review & generate" : "Next";
+      wizardProgressText.textContent = `Step ${wizardStep} of ${WIZARD_STEP_COUNT}`;
+    } else {
+      formPanelEl.hidden = true;
+      outputPanelEl.hidden = false;
+    }
+  }
+
+  function resetWizardStep() {
+    wizardStep = 1;
+    renderWizard();
+  }
+
+  function goToWizardStep(step) {
+    wizardStep = Math.max(1, Math.min(WIZARD_STEP_COUNT + 1, step));
+    renderWizard();
+    (wizardStep <= WIZARD_STEP_COUNT ? formPanelEl : outputPanelEl).scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  wizardBackBtn.addEventListener("click", () => goToWizardStep(wizardStep - 1));
+  wizardNextBtn.addEventListener("click", () => goToWizardStep(wizardStep + 1));
+  wizardStepDots.forEach((dot) => {
+    dot.addEventListener("click", () => goToWizardStep(Number(dot.dataset.step)));
+  });
+  backToEditBtn.addEventListener("click", () => goToWizardStep(WIZARD_STEP_COUNT));
+
+  renderWizard();
+
+  function refreshContinueDraftCard() {
+    const card = document.getElementById("card-continue-draft");
+    const titleEl = document.getElementById("continue-draft-title");
+    let stored;
+    try {
+      stored = localStorage.getItem(DRAFT_KEY);
+    } catch (e) {
+      stored = null;
+    }
+    if (!stored) { card.hidden = true; return; }
+    let draft;
+    try {
+      draft = JSON.parse(stored);
+    } catch (e) {
+      card.hidden = true;
+      return;
+    }
+    // Only the core narrative fields count — tone/audience/timeframe-mode
+    // etc. always carry a non-empty default value even on an untouched
+    // form, so checking every draft key would show this card for a
+    // visitor who never typed anything.
+    const hasContent = SHAPE_FIELD_IDS.some((id) => typeof draft[id] === "string" && draft[id].trim());
+    if (!hasContent) { card.hidden = true; return; }
+    card.hidden = false;
+    titleEl.textContent = draft.who ? `${firstName(draft.who)}'s story` : "Untitled field story";
+  }
+
+  document.getElementById("logo-home-btn").addEventListener("click", showDashboard);
+  document.getElementById("card-new-caption").addEventListener("click", () => {
+    document.getElementById("clear-btn").click();
+    showWorkspace("captions");
+  });
+  document.getElementById("card-new-fullstory").addEventListener("click", () => {
+    document.getElementById("clear-btn").click();
+    showWorkspace("fullstory");
+  });
+  document.getElementById("card-continue-draft").addEventListener("click", () => {
+    showWorkspace();
   });
 
   function clearFullStoryOutput() {
@@ -1653,5 +1785,6 @@
   loadDraft();
   updateShapeRing();
   updateStoryTitle();
+  refreshContinueDraftCard();
 
 })();
