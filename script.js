@@ -8,7 +8,10 @@
     "phase", "link", "tone", "audience",
     "timeframeMode", "timeframeDate", "timeframeDateTo", "timeframeNumber", "timeframeUnit",
     "detailSlider",
-    "fsRegion", "fsStoryType", "fsContext", "fsQuote2", "fsQuote2Attribution", "fsWhatsNext"
+    "fsRegion", "fsStoryType", "fsContext", "fsQuote2", "fsQuote2Attribution", "fsWhatsNext",
+    "projectName", "orgName", "fsMilestones", "fsRippleEffect",
+    "fsCohort", "fsBudget", "fsHypothesis", "fsBaselineContext", "fsBarriers",
+    "fsPhases", "fsMetrics", "fsFriction", "fsReplicability", "fsRecommendations"
   ];
   const fields = {};
   ids.forEach((id) => { fields[id] = document.getElementById(id); });
@@ -357,8 +360,21 @@
     return PROGRAMME_VALUE_TO_FAMILY[programmeValue] || "";
   }
 
+  // Each story-type builder below returns a flat list of "blocks" that
+  // generateFullStory() renders in order and fullStoryAsText() flattens
+  // for copying. A block is one of:
+  //   { kind: "label", text }              -- a section heading
+  //   { kind: "para", text }                -- a paragraph
+  //   { kind: "bullets", items: [string] }  -- a bullet list
+  //   { kind: "quote", text, attribution }  -- a pull-quote
+  //   { kind: "meta", items: [{label,value}] } -- a metadata block
+  // Every block is built only from the user's own typed fields (plus
+  // fixed categorical framing phrases keyed by Programme family/tone,
+  // exactly like the caption builders) — never invented content.
+
   function fsBuildHeadline(v, storyType) {
     const where = clean(v.where);
+    const project = clean(v.projectName);
     if (storyType === "success") {
       const name = firstName(v.who);
       const body = clean(v.changed) || clean(v.issue);
@@ -369,8 +385,8 @@
     if (storyType === "casestudy") {
       const issue = clean(v.issue);
       const changed = clean(v.changed);
-      if (issue && changed) return `${upper1(issue)} — ${lower1(changed)}`;
-      return upper1(issue || changed || where || "Case study");
+      const subtitle = (issue && changed) ? `${upper1(issue)} — ${lower1(changed)}` : upper1(issue || changed || where || "Case study");
+      return project ? `${project}: ${subtitle}` : subtitle;
     }
     // impact (default): lead with the number/outcome, then place it
     const lead = clean(v.results) || clean(v.changed) || clean(v.issue);
@@ -406,43 +422,174 @@
     return `${upper1(`as part of our ${theme} work, ${lower1(clean(v.involvement))}`)}.`;
   }
 
-  function fsBuildQuotes(v) {
-    const quotes = [];
-    if (v.quote) {
-      quotes.push({
-        text: upper1(stripQuotes(v.quote)),
-        attribution: firstName(v.who) || "Programme participant",
-      });
-    }
-    if (v.fsQuote2) {
-      quotes.push({
-        text: upper1(stripQuotes(v.fsQuote2)),
-        attribution: clean(v.fsQuote2Attribution) || "Team member",
-      });
-    }
-    return quotes;
+  function fsMainQuote(v) {
+    if (!v.quote) return null;
+    return { kind: "quote", text: upper1(stripQuotes(v.quote)), attribution: firstName(v.who) || "Programme participant" };
+  }
+  function fsSecondQuote(v) {
+    if (!v.fsQuote2) return null;
+    return { kind: "quote", text: upper1(stripQuotes(v.fsQuote2)), attribution: clean(v.fsQuote2Attribution) || "Team member" };
   }
 
-  function fsBuildImpact(v) {
-    const sentences = [];
-    if (v.howmany) sentences.push(`${upper1(clean(v.howmany))} have been reached through this work.`);
-    if (v.results) sentences.push(sentenceFrom(v.results));
-    return joinSentences(sentences);
-  }
-
-  function fsBuildClosing(v, tone, audience, variant) {
-    const sentences = [];
+  function fsDonorPartnerSentences(v, tone, audience, variant) {
     const donorSentence = v.donor ? pick(buildDonorCreditTails(tone), variant)(v.donor) : null;
     const partnerSentence = v.partner ? pick(PARTNER_PHRASES, variant)(v.partner) : null;
+    const out = [];
     if (audience === "partners") {
-      if (partnerSentence) sentences.push(partnerSentence);
-      if (donorSentence) sentences.push(donorSentence);
+      if (partnerSentence) out.push(partnerSentence);
+      if (donorSentence) out.push(donorSentence);
     } else {
-      if (donorSentence) sentences.push(donorSentence);
-      if (partnerSentence) sentences.push(partnerSentence);
+      if (donorSentence) out.push(donorSentence);
+      if (partnerSentence) out.push(partnerSentence);
     }
-    if (v.fsWhatsNext) sentences.push(sentenceFrom(v.fsWhatsNext));
-    return joinSentences(sentences);
+    return out;
+  }
+
+  // Splits a textarea's "one per line" convention into a clean list,
+  // dropping blank lines — used by every free-form bullet field below.
+  function linesToList(raw) {
+    return (raw || "")
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean);
+  }
+
+  function labeledBullet(label, value) {
+    return value ? `${label}: ${clean(value)}` : null;
+  }
+
+  // ---------- Success story: quick social proof (250-400 words) ----------
+  // Core focus: individual win & tangible milestone. Three short
+  // paragraphs (struggle -> intervention -> today), a quote, and an
+  // optional verified-milestones list.
+
+  function buildSuccessStory(v, variant, tone, audience) {
+    const blocks = [];
+    const name = firstName(v.who);
+
+    const para1 = joinSentences([fsBuildOpening(v, variant), sentenceFrom(v.issue)]);
+    if (para1) blocks.push({ kind: "para", text: para1 });
+
+    const enrollParts = [];
+    if (v.timeframe) enrollParts.push(`In ${lower1(stripLeadingSince(v.timeframe))},`);
+    if (name && v.projectName) enrollParts.push(`${name} enrolled in ${clean(v.projectName)}${v.orgName ? `, an intervention facilitated by ${clean(v.orgName)}` : ""}${v.donor ? ` and supported by ${clean(v.donor)}` : ""}.`);
+    const para2Lead = enrollParts.length ? upper1(enrollParts.join(" ")) : "";
+    const para2 = joinSentences([para2Lead, sentenceFrom(v.involvement)]);
+    if (para2) blocks.push({ kind: "para", text: para2 });
+
+    // "changed" is a full clause the user typed themselves (subject and
+    // verb included, e.g. "she launched a micro-enterprise"), so it's
+    // only ever prefixed with a plain "Today," — never wrapped in a
+    // scaffold like "has {changed}", which would double up the subject.
+    const todayLead = v.changed ? `Today, ${lower1(clean(v.changed))}.` : "";
+    const para3 = joinSentences([todayLead, sentenceFrom(v.results)]);
+    if (para3) blocks.push({ kind: "para", text: para3 });
+
+    const quote = fsMainQuote(v);
+    if (quote) blocks.push(quote);
+
+    const milestones = linesToList(v.fsMilestones);
+    if (milestones.length) blocks.push({ kind: "label", text: "Key verified milestones" }, { kind: "bullets", items: milestones });
+
+    const closingSentences = fsDonorPartnerSentences(v, tone, audience, variant);
+    if (closingSentences.length) blocks.push({ kind: "para", text: joinSentences(closingSentences) });
+
+    return blocks;
+  }
+
+  // ---------- Impact story: human transformation & ripple effect (500-800 words) ----------
+  // Four labeled sections: context & root vulnerability, the catalyst,
+  // the ripple effect, looking ahead. The beneficiary is the
+  // protagonist; the organization is the catalyst, never the hero.
+
+  function buildImpactStory(v, variant, tone, audience, familyId) {
+    const blocks = [];
+
+    const context = joinSentences([sentenceFrom(v.why), fsBuildOpening(v, variant), sentenceFrom(v.issue)]);
+    if (context) blocks.push({ kind: "label", text: "The context & root vulnerability" }, { kind: "para", text: context });
+
+    const catalystLead = (v.projectName || v.orgName)
+      ? upper1(`through ${v.projectName ? clean(v.projectName) : "this work"}${v.orgName ? `, ${clean(v.orgName)}` : ""} partnered with the community to respond.`)
+      : "";
+    const catalyst = joinSentences([catalystLead, fsBuildResponse(v, familyId)]);
+    if (catalyst) blocks.push({ kind: "label", text: "The catalyst" }, { kind: "para", text: catalyst });
+
+    const rippleIntro = joinSentences([sentenceFrom(v.results), sentenceFrom(v.changed)]);
+    if (rippleIntro) blocks.push({ kind: "label", text: "The ripple effect" }, { kind: "para", text: rippleIntro });
+    const mainQuote = fsMainQuote(v);
+    if (mainQuote) blocks.push(mainQuote);
+    if (v.fsRippleEffect) blocks.push({ kind: "para", text: sentenceFrom(v.fsRippleEffect) });
+
+    const aheadSentences = [];
+    if (v.fsWhatsNext) aheadSentences.push(sentenceFrom(v.fsWhatsNext));
+    aheadSentences.push(...fsDonorPartnerSentences(v, tone, audience, variant));
+    const secondQuote = fsSecondQuote(v);
+    if (aheadSentences.length || secondQuote) {
+      blocks.push({ kind: "label", text: "Looking ahead" });
+      if (aheadSentences.length) blocks.push({ kind: "para", text: joinSentences(aheadSentences) });
+      if (secondQuote) blocks.push(secondQuote);
+    }
+
+    return blocks;
+  }
+
+  // ---------- Case study: methodology, M&E data, scaling (1,000-2,000+ words) ----------
+  // Project metadata block, then six numbered sections. Evaluators trust
+  // case studies that document operational friction candidly, so that
+  // section renders whatever the user entered without softening it.
+
+  function buildCaseStudy(v, variant, tone, audience) {
+    const blocks = [];
+
+    const metaItems = [
+      v.where ? { label: "Location", value: clean(v.where) } : null,
+      v.timeframe ? { label: "Implementation period", value: clean(v.timeframe) } : null,
+      v.fsCohort ? { label: "Target beneficiaries", value: clean(v.fsCohort) } : null,
+      v.fsBudget ? { label: "Total intervention budget", value: clean(v.fsBudget) } : null,
+    ].filter(Boolean);
+    if (metaItems.length) blocks.push({ kind: "meta", items: metaItems });
+
+    const summaryBullets = [
+      labeledBullet("Intervention hypothesis", v.fsHypothesis),
+      labeledBullet("Problem statement", v.issue),
+      labeledBullet("Primary headline outcome", v.results),
+      labeledBullet("Replicability", v.fsReplicability),
+    ].filter(Boolean);
+    if (summaryBullets.length) blocks.push({ kind: "label", text: "1. Executive summary" }, { kind: "bullets", items: summaryBullets });
+
+    const mainQuote = fsMainQuote(v);
+    if (mainQuote) blocks.push(mainQuote);
+
+    const barriers = linesToList(v.fsBarriers);
+    if (v.fsBaselineContext || barriers.length) {
+      blocks.push({ kind: "label", text: "2. Socio-economic baseline & bottlenecks" });
+      if (v.fsBaselineContext) blocks.push({ kind: "para", text: sentenceFrom(v.fsBaselineContext) });
+      if (barriers.length) blocks.push({ kind: "bullets", items: barriers });
+    }
+
+    const phases = linesToList(v.fsPhases);
+    if (v.involvement || phases.length) {
+      blocks.push({ kind: "label", text: "3. Phased implementation framework" });
+      if (v.involvement) blocks.push({ kind: "para", text: sentenceFrom(v.involvement) });
+      if (phases.length) blocks.push({ kind: "bullets", items: phases });
+    }
+
+    const metrics = linesToList(v.fsMetrics);
+    if (metrics.length) blocks.push({ kind: "label", text: "4. Monitoring & evaluation findings" }, { kind: "bullets", items: metrics });
+
+    const friction = linesToList(v.fsFriction);
+    if (friction.length) blocks.push({ kind: "label", text: "5. Operational friction & adaptive management" }, { kind: "bullets", items: friction });
+
+    const recommendations = linesToList(v.fsRecommendations);
+    if (recommendations.length) blocks.push({ kind: "label", text: "6. Actionable takeaways & policy recommendations" }, { kind: "bullets", items: recommendations });
+
+    const secondQuote = fsSecondQuote(v);
+    if (secondQuote) blocks.push(secondQuote);
+
+    const closingSentences = fsDonorPartnerSentences(v, tone, audience, variant);
+    if (closingSentences.length) blocks.push({ kind: "para", text: joinSentences(closingSentences) });
+
+    return blocks;
   }
 
   function buildFullStory(v, variant, tone, audience) {
@@ -455,22 +602,21 @@
       v.fsRegion ? REGION_LABELS[v.fsRegion] : "",
     ].filter(Boolean);
 
-    const isCaseStudy = storyType === "casestudy";
+    let blocks;
+    if (storyType === "success") blocks = buildSuccessStory(v, variant, tone, audience);
+    else if (storyType === "casestudy") blocks = buildCaseStudy(v, variant, tone, audience);
+    else blocks = buildImpactStory(v, variant, tone, audience, familyId);
+
+    // Regional/sector context (fsContext) is the one place background
+    // is allowed to come from the user's own words; it reads naturally
+    // right after the story's opening context, for every type.
+    if (v.fsContext) blocks.unshift({ kind: "para", text: sentenceFrom(v.fsContext) });
 
     return {
       kicker: kickerParts.join(" · "),
       headline: fsBuildHeadline(v, storyType),
       dek: fsBuildDek(v),
-      opening: fsBuildOpening(v, variant),
-      context: sentenceFrom(v.fsContext),
-      situationLabel: isCaseStudy ? "The problem" : "",
-      situation: sentenceFrom(v.issue),
-      responseLabel: isCaseStudy ? "Our response" : "",
-      response: fsBuildResponse(v, familyId),
-      quotes: fsBuildQuotes(v),
-      impactLabel: isCaseStudy ? "The result" : "",
-      impact: fsBuildImpact(v),
-      closing: fsBuildClosing(v, tone, audience, variant),
+      blocks,
       link: clean(v.link),
     };
   }
@@ -903,22 +1049,60 @@
     kicker: document.getElementById("fs-kicker"),
     headline: document.getElementById("fs-headline"),
     dek: document.getElementById("fs-dek"),
-    opening: document.getElementById("fs-opening"),
-    context: document.getElementById("fs-context"),
-    situationLabel: document.getElementById("fs-situation-label"),
-    situation: document.getElementById("fs-situation"),
-    responseLabel: document.getElementById("fs-response-label"),
-    response: document.getElementById("fs-response"),
-    quotes: document.getElementById("fs-quotes"),
-    impactLabel: document.getElementById("fs-impact-label"),
-    impact: document.getElementById("fs-impact"),
-    closing: document.getElementById("fs-closing"),
+    body: document.getElementById("fs-body"),
     learnMore: document.getElementById("fs-learn-more"),
   };
 
-  function setFsLabel(el, text) {
-    if (text) { el.textContent = text; el.hidden = false; }
-    else { el.textContent = ""; el.hidden = true; }
+  function renderFsBlock(block) {
+    if (block.kind === "label") {
+      const span = document.createElement("span");
+      span.className = "fs-para-label";
+      span.textContent = block.text;
+      return span;
+    }
+    if (block.kind === "para") {
+      const p = document.createElement("p");
+      p.className = "fs-para";
+      p.textContent = block.text;
+      return p;
+    }
+    if (block.kind === "bullets") {
+      const ul = document.createElement("ul");
+      ul.className = "fs-bullets";
+      block.items.forEach((item) => {
+        const li = document.createElement("li");
+        li.textContent = item;
+        ul.appendChild(li);
+      });
+      return ul;
+    }
+    if (block.kind === "quote") {
+      const wrap = document.createElement("div");
+      wrap.className = "fs-quote";
+      const p = document.createElement("p");
+      p.className = "fs-quote-text";
+      p.textContent = `"${block.text}"`;
+      const cite = document.createElement("p");
+      cite.className = "fs-quote-attribution";
+      cite.textContent = block.attribution;
+      wrap.appendChild(p);
+      wrap.appendChild(cite);
+      return wrap;
+    }
+    if (block.kind === "meta") {
+      const dl = document.createElement("dl");
+      dl.className = "fs-meta";
+      block.items.forEach(({ label, value }) => {
+        const dt = document.createElement("dt");
+        dt.textContent = label;
+        const dd = document.createElement("dd");
+        dd.textContent = value;
+        dl.appendChild(dt);
+        dl.appendChild(dd);
+      });
+      return dl;
+    }
+    return null;
   }
 
   let lastFullStory = null;
@@ -935,29 +1119,11 @@
     fsEls.kicker.textContent = story.kicker;
     fsEls.headline.textContent = story.headline;
     fsEls.dek.textContent = story.dek;
-    fsEls.opening.textContent = story.opening;
-    fsEls.context.textContent = story.context;
-    setFsLabel(fsEls.situationLabel, story.situationLabel);
-    fsEls.situation.textContent = story.situation;
-    setFsLabel(fsEls.responseLabel, story.responseLabel);
-    fsEls.response.textContent = story.response;
-    setFsLabel(fsEls.impactLabel, story.impactLabel);
-    fsEls.impact.textContent = story.impact;
-    fsEls.closing.textContent = story.closing;
 
-    fsEls.quotes.innerHTML = "";
-    story.quotes.forEach((q) => {
-      const wrap = document.createElement("div");
-      wrap.className = "fs-quote";
-      const p = document.createElement("p");
-      p.className = "fs-quote-text";
-      p.textContent = `"${q.text}"`;
-      const cite = document.createElement("p");
-      cite.className = "fs-quote-attribution";
-      cite.textContent = q.attribution;
-      wrap.appendChild(p);
-      wrap.appendChild(cite);
-      fsEls.quotes.appendChild(wrap);
+    fsEls.body.innerHTML = "";
+    story.blocks.forEach((block) => {
+      const node = renderFsBlock(block);
+      if (node) fsEls.body.appendChild(node);
     });
 
     if (story.link) {
@@ -969,8 +1135,11 @@
     }
 
     const scanLabel = STORY_TYPE_LABELS[v.fsStoryType || "impact"];
+    const bodyText = story.blocks
+      .map((b) => (b.kind === "para" ? b.text : b.kind === "quote" ? b.text : b.kind === "bullets" ? b.items.join(" ") : ""))
+      .join(" ");
     const hits = [
-      ...scanText(scanLabel, [story.opening, story.context, story.situation, story.response, story.impact, story.closing].join(" ")),
+      ...scanText(scanLabel, bodyText),
       ...scanText("your Quote box", v.quote),
       ...scanText("your Why box", v.why),
     ];
@@ -978,15 +1147,14 @@
   }
 
   function fullStoryAsText(story) {
-    const parts = [story.kicker, story.headline, story.dek, story.opening, story.context];
-    if (story.situationLabel) parts.push(story.situationLabel.toUpperCase());
-    parts.push(story.situation);
-    if (story.responseLabel) parts.push(story.responseLabel.toUpperCase());
-    parts.push(story.response);
-    story.quotes.forEach((q) => parts.push(`"${q.text}" — ${q.attribution}`));
-    if (story.impactLabel) parts.push(story.impactLabel.toUpperCase());
-    parts.push(story.impact);
-    parts.push(story.closing);
+    const parts = [story.kicker, story.headline, story.dek];
+    story.blocks.forEach((block) => {
+      if (block.kind === "label") parts.push(block.text.toUpperCase());
+      else if (block.kind === "para") parts.push(block.text);
+      else if (block.kind === "bullets") parts.push(block.items.map((item) => `• ${item}`).join("\n"));
+      else if (block.kind === "quote") parts.push(`"${block.text}" — ${block.attribution}`);
+      else if (block.kind === "meta") parts.push(block.items.map((i) => `${i.label}: ${i.value}`).join("\n"));
+    });
     if (story.link) parts.push(`Learn more: ${story.link}`);
     return parts.filter(Boolean).join("\n\n");
   }
@@ -1283,6 +1451,7 @@
     fields.audience.value = "donors";
     fields.fsRegion.value = "";
     fields.fsStoryType.value = "impact";
+    syncStoryTypeFields();
     variantIndex.meta = 0;
     variantIndex.linkedin = 0;
     variantIndex.website = 0;
@@ -1716,16 +1885,7 @@
     fsEls.kicker.textContent = "";
     fsEls.headline.textContent = "";
     fsEls.dek.textContent = "";
-    fsEls.opening.textContent = "";
-    fsEls.context.textContent = "";
-    setFsLabel(fsEls.situationLabel, "");
-    fsEls.situation.textContent = "";
-    setFsLabel(fsEls.responseLabel, "");
-    fsEls.response.textContent = "";
-    fsEls.quotes.innerHTML = "";
-    setFsLabel(fsEls.impactLabel, "");
-    fsEls.impact.textContent = "";
-    fsEls.closing.textContent = "";
+    fsEls.body.innerHTML = "";
     fsEls.learnMore.hidden = true;
     fsEls.learnMore.textContent = "";
     if (scanCard && appMode === "fullstory") { scanCard.hidden = true; scanList.innerHTML = ""; }
@@ -1737,10 +1897,11 @@
     generateFullStory();
   });
 
-  document.getElementById("fs-copy-btn").addEventListener("click", async (e) => {
+  const fsCopyBtn = document.getElementById("fs-copy-btn");
+  fsCopyBtn.addEventListener("click", async () => {
     if (!lastFullStory) return;
     await copyText(fullStoryAsText(lastFullStory));
-    flashCopied(e.currentTarget);
+    flashCopied(fsCopyBtn);
   });
 
   // ---------- draft badge (reflects whether captions have been generated yet) ----------
@@ -1992,6 +2153,7 @@
     });
     if (draft.programme) restoreProgrammeSelection(draft.programme);
     refreshSuggestionsForFamily();
+    syncStoryTypeFields();
     populateTimeframeNumberOptions(fields.timeframeUnit.value);
     if (typeof draft.timeframeNumber === "string") fields.timeframeNumber.value = draft.timeframeNumber;
     setTimeframeMode(draft.timeframeMode || "date");
@@ -2013,7 +2175,25 @@
   fields.tone.addEventListener("change", regenerateActiveMode);
   fields.audience.addEventListener("change", regenerateActiveMode);
   fields.fsRegion.addEventListener("change", regenerateActiveMode);
-  fields.fsStoryType.addEventListener("change", regenerateActiveMode);
+
+  // ---------- Full Story: show only the fields the chosen story type uses ----------
+
+  const fsStoryTypeFieldGroups = {
+    success: document.getElementById("fs-success-fields"),
+    impact: document.getElementById("fs-impact-fields"),
+    casestudy: document.getElementById("fs-casestudy-fields"),
+  };
+  function syncStoryTypeFields() {
+    const type = fields.fsStoryType.value || "impact";
+    Object.keys(fsStoryTypeFieldGroups).forEach((key) => {
+      fsStoryTypeFieldGroups[key].hidden = key !== type;
+    });
+  }
+  fields.fsStoryType.addEventListener("change", () => {
+    syncStoryTypeFields();
+    regenerateActiveMode();
+  });
+  syncStoryTypeFields();
 
   // ---------- level-of-detail slider ----------
   //

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Caption Generator</title>
-<link rel="stylesheet" href="style.css?v=20260902j">
+<link rel="stylesheet" href="style.css?v=20260902k">
 </head>
 <body>
 
@@ -339,6 +339,15 @@
                 </div>
                 <p class="field-hint">Region and story type shape framing and word choice only &mdash; never facts, stats, or context beyond what you've entered.</p>
 
+                <div class="field">
+                  <label for="projectName">Project name <span class="opt">optional</span></label>
+                  <input type="text" id="projectName" placeholder="e.g. Women's Economic Resilience Project">
+                </div>
+                <div class="field">
+                  <label for="orgName">Implementing organization <span class="opt">optional</span></label>
+                  <input type="text" id="orgName" placeholder="e.g. Global Relief Alliance">
+                </div>
+
                 <div class="field field-wide">
                   <label for="fsContext">Regional / sector context <span class="opt">optional &mdash; your own words, not generated</span></label>
                   <textarea id="fsContext" rows="2" placeholder="e.g. ongoing displacement due to conflict in the tri-border area, or the region's rainy-season access constraints"></textarea>
@@ -353,9 +362,69 @@
                   <label for="fsQuote2Attribution">Second quote attribution <span class="opt">optional</span></label>
                   <input type="text" id="fsQuote2Attribution" placeholder="e.g. Program Officer, YourOrg">
                 </div>
-                <div class="field field-wide">
-                  <label for="fsWhatsNext">What's next <span class="opt">optional &mdash; ongoing needs or the next phase</span></label>
-                  <textarea id="fsWhatsNext" rows="2" placeholder="e.g. the programme is expanding to two more districts next year"></textarea>
+
+                <div id="fs-success-fields" hidden>
+                  <p class="field-wide field-subhead">Success story details</p>
+                  <div class="field field-wide">
+                    <label for="fsMilestones">Key verified milestones <span class="opt">optional, one per line</span></label>
+                    <textarea id="fsMilestones" rows="3" placeholder="e.g.&#10;100% completion of certified technical modules&#10;Income increased 115% over baseline&#10;1 new micro-business operating independently"></textarea>
+                  </div>
+                </div>
+
+                <div id="fs-impact-fields">
+                  <p class="field-wide field-subhead">Impact story details</p>
+                  <div class="field field-wide">
+                    <label for="fsRippleEffect">The ripple effect <span class="opt">optional &mdash; how this spread beyond the household</span></label>
+                    <textarea id="fsRippleEffect" rows="2" placeholder="e.g. she organized four neighbor women into a cooperative, or she established a community peer-lending circle"></textarea>
+                  </div>
+                  <div class="field field-wide">
+                    <label for="fsWhatsNext">Looking ahead <span class="opt">optional &mdash; ongoing needs or the next phase</span></label>
+                    <textarea id="fsWhatsNext" rows="2" placeholder="e.g. the programme is expanding to two more districts next year"></textarea>
+                  </div>
+                </div>
+
+                <div id="fs-casestudy-fields" hidden>
+                  <p class="field-wide field-subhead">Case study details</p>
+                  <div class="field">
+                    <label for="fsCohort">Target beneficiaries <span class="opt">optional</span></label>
+                    <input type="text" id="fsCohort" placeholder="e.g. 312 smallholder households (N=312)">
+                  </div>
+                  <div class="field">
+                    <label for="fsBudget">Total intervention budget <span class="opt">optional</span></label>
+                    <input type="text" id="fsBudget" placeholder="e.g. $185,000 (USAID Local Works)">
+                  </div>
+                  <div class="field field-wide">
+                    <label for="fsHypothesis">Intervention hypothesis <span class="opt">optional &mdash; what was tested against the baseline barrier</span></label>
+                    <textarea id="fsHypothesis" rows="2" placeholder="e.g. that asset transfer plus peer accountability groups sustain micro-enterprises better than training alone"></textarea>
+                  </div>
+                  <div class="field field-wide">
+                    <label for="fsBaselineContext">Socio-economic baseline <span class="opt">optional &mdash; conditions before the intervention</span></label>
+                    <textarea id="fsBaselineContext" rows="2" placeholder="e.g. economic vulnerability indicators, infrastructure constraints, institutional gaps"></textarea>
+                  </div>
+                  <div class="field field-wide">
+                    <label for="fsBarriers">Key structural barriers <span class="opt">optional, one per line</span></label>
+                    <textarea id="fsBarriers" rows="3" placeholder="e.g.&#10;Uncollateralized microfinance interest rates exceeding 15% monthly&#10;Scheduled grid blackouts averaging 8 hours daily"></textarea>
+                  </div>
+                  <div class="field field-wide">
+                    <label for="fsPhases">Phased implementation <span class="opt">optional, one phase per line</span></label>
+                    <textarea id="fsPhases" rows="3" placeholder="e.g.&#10;Phase 1 (Weeks 1-6): Beneficiary targeting and skills training&#10;Phase 2 (Week 7): Asset capitalization and starter logistics"></textarea>
+                  </div>
+                  <div class="field field-wide">
+                    <label for="fsMetrics">Monitoring &amp; evaluation findings <span class="opt">optional, one per line, baseline vs endline</span></label>
+                    <textarea id="fsMetrics" rows="3" placeholder="e.g.&#10;Enterprise sustainability: 82% active after 6 months (vs. 45% baseline)&#10;Household Dietary Diversity Score improved 30%"></textarea>
+                  </div>
+                  <div class="field field-wide">
+                    <label for="fsFriction">Operational friction &amp; adaptive pivots <span class="opt">optional, one per line</span></label>
+                    <textarea id="fsFriction" rows="3" placeholder="e.g. Grid blackouts made electric equipment useless &rarr; switched procurement to manual treadle units"></textarea>
+                  </div>
+                  <div class="field field-wide">
+                    <label for="fsReplicability">Replicability <span class="opt">optional &mdash; what's needed to scale this elsewhere</span></label>
+                    <textarea id="fsReplicability" rows="2" placeholder="e.g. requires an active local savings-group network and a market with unmet demand for the trained skill"></textarea>
+                  </div>
+                  <div class="field field-wide">
+                    <label for="fsRecommendations">Actionable takeaways &amp; policy recommendations <span class="opt">optional, one per line</span></label>
+                    <textarea id="fsRecommendations" rows="3" placeholder="e.g. Fund asset grants only alongside cohort-based peer savings groups, not as a standalone intervention"></textarea>
+                  </div>
                 </div>
               </div>
             </div>
@@ -433,27 +502,8 @@
             <h3 class="fs-headline" id="fs-headline"></h3>
             <p class="fs-dek" id="fs-dek"></p>
 
-            <p class="fs-para" id="fs-opening"></p>
-            <p class="fs-para" id="fs-context"></p>
+            <div id="fs-body"></div>
 
-            <div class="fs-para-block">
-              <span class="fs-para-label" id="fs-situation-label" hidden></span>
-              <p class="fs-para" id="fs-situation"></p>
-            </div>
-
-            <div class="fs-para-block">
-              <span class="fs-para-label" id="fs-response-label" hidden></span>
-              <p class="fs-para" id="fs-response"></p>
-            </div>
-
-            <div class="fs-quotes" id="fs-quotes"></div>
-
-            <div class="fs-para-block">
-              <span class="fs-para-label" id="fs-impact-label" hidden></span>
-              <p class="fs-para" id="fs-impact"></p>
-            </div>
-
-            <p class="fs-para" id="fs-closing"></p>
             <p class="fs-learn-more" id="fs-learn-more" hidden></p>
 
             <div class="fs-actions">
@@ -620,6 +670,6 @@
     "y": "daJuKnjCmA25zB6JpzfYuHTs3JPyrh4X3omAUWeM9RQ"
   };
 </script>
-<script src="script.js?v=20260902k"></script>
+<script src="script.js?v=20260902n"></script>
 </body>
 </html>
