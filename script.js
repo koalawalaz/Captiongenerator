@@ -1192,7 +1192,63 @@
       "I never thought I'd see this day.",
       "This changed everything for my family.",
     ],
+    fsMilestones: [
+      "100% completion of the certified training programme",
+      "Monthly income increased 40% within six months",
+      "Business formally registered with the local authority",
+    ],
+    fsRippleEffect: [
+      "she trained three neighboring women in the same skill",
+      "he now mentors two other returning entrepreneurs",
+      "the family shares surplus produce with two neighboring households",
+    ],
+    fsWhatsNext: [
+      "the programme is expanding to two more communities next year",
+      "she plans to hire her first employee within the year",
+      "follow-up support continues for another six months",
+    ],
+    fsHypothesis: [
+      "that combining a cash grant with mentorship sustains businesses longer than a grant alone",
+      "that peer support groups reduce dropout from vocational training",
+      "that early registration reduces case-processing time",
+    ],
+    fsBaselineContext: [
+      "high youth unemployment and limited access to formal credit in the target area",
+      "low school enrollment driven by long travel distances to the nearest classroom",
+      "recurring water shortages during the dry season",
+    ],
+    fsBarriers: [
+      "Limited access to affordable credit",
+      "Long travel distances to service points",
+      "Low digital literacy among target beneficiaries",
+    ],
+    fsPhases: [
+      "Phase 1 (Months 1-3): Beneficiary targeting and needs assessment",
+      "Phase 2 (Months 4-6): Training and asset distribution",
+      "Phase 3 (Months 7-12): Follow-up and monitoring",
+    ],
+    fsMetrics: [
+      "Household income increased 35% from baseline",
+      "School attendance improved from 62% to 89%",
+      "Time to access clean water reduced by half",
+    ],
+    fsFriction: [
+      "Initial training schedule conflicted with harvest season → shifted sessions to evenings",
+      "Digital intake forms failed in low-connectivity areas → switched to paper-based intake",
+    ],
+    fsReplicability: [
+      "requires an existing community savings network to sustain results",
+      "depends on reliable market access for the trained skill",
+      "needs local government buy-in to continue after the programme ends",
+    ],
+    fsRecommendations: [
+      "Pair cash assistance with ongoing mentorship, not as a one-time transfer",
+      "Build in a follow-up visit at three and six months",
+      "Involve local leaders early to improve uptake",
+    ],
   };
+
+  const LINE_LIST_FIELDS = new Set(["fsMilestones", "fsBarriers", "fsPhases", "fsMetrics", "fsFriction", "fsRecommendations"]);
 
   const SUGGESTIONS_BY_FAMILY = {
     protection: {
@@ -1380,7 +1436,13 @@
       chip.addEventListener("mousedown", (e) => {
         e.preventDefault();
         const current = field.value.trim();
-        field.value = current ? `${current} ${text}` : upper1(text);
+        if (!current) {
+          field.value = upper1(text);
+        } else if (LINE_LIST_FIELDS.has(fieldId)) {
+          field.value = `${current}\n${text}`;
+        } else {
+          field.value = `${current} ${text}`;
+        }
         field.dispatchEvent(new Event("input"));
         field.focus();
       });
