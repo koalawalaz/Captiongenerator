@@ -514,8 +514,22 @@ img, svg, table{max-width:100%;}
 .form-step[hidden]{display:none;}
 #fullstory-fields{display:contents;}
 #fullstory-fields[hidden]{display:none;}
+#fs-success-fields{display:contents;}
+#fs-success-fields[hidden]{display:none;}
+#fs-impact-fields{display:contents;}
+#fs-impact-fields[hidden]{display:none;}
+#fs-casestudy-fields{display:contents;}
+#fs-casestudy-fields[hidden]{display:none;}
 .field{margin-bottom:14px;}
 .field-wide{grid-column:1 / -1;}
+.field-subhead{
+  margin:4px 0 -2px;
+  font-size:0.72rem;
+  font-weight:700;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  color:var(--accent-text);
+}
 
 .wizard-steps{
   display:flex;
@@ -1088,6 +1102,30 @@ input[type="range"]::-moz-range-track{
   color:var(--accent-text);
 }
 .fs-para-label[hidden]{display:none;}
+.fs-bullets{
+  margin:0 0 16px;
+  padding-left:20px;
+  max-width:70ch;
+}
+.fs-bullets li{
+  margin-bottom:8px;
+  font-size:0.96rem;
+  line-height:1.55;
+  color:var(--ink);
+}
+.fs-meta{
+  display:grid;
+  grid-template-columns:auto 1fr;
+  gap:6px 14px;
+  margin:0 0 20px;
+  padding:14px 16px;
+  background:var(--ground);
+  border:1px solid var(--line);
+  border-radius:10px;
+  font-size:0.86rem;
+}
+.fs-meta dt{margin:0;font-weight:700;color:var(--ink-soft);white-space:nowrap;}
+.fs-meta dd{margin:0;color:var(--ink);}
 .fs-quotes{margin:4px 0 20px;}
 .fs-quote{
   margin:0 0 14px;
